@@ -1523,7 +1523,7 @@ export function OrgGovernanceTab() {
                                           className="rounded border-blue-400 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
                                         />
                                         <span className="truncate">
-                                          <span className="font-semibold">{c.segment}</span>
+                                          <span className="font-semibold">{(c as any).displaySegment || c.segment}</span>
                                         </span>
                                       </label>
                                     )
@@ -1663,7 +1663,7 @@ export function OrgGovernanceTab() {
                                                 }}
                                                 className="rounded border-blue-400 text-blue-600 h-3 w-3 cursor-pointer"
                                               />
-                                              <span className="font-semibold">{c.segment}</span>
+                                              <span className="font-semibold">{(c as any).displaySegment || c.segment}</span>
                                             </label>
                                           )
                                         })}

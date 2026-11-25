@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Badge } from '@/components/ui/index'
@@ -37,6 +37,8 @@ export interface OrgManager {
   phone?: string | null
   orgRole: string
   segment?: string | null
+  zone?: string | null
+  displaySegment?: string | null
   seniorManagerUid?: string | null
   isCurrent: boolean
   isSenior: boolean
@@ -781,8 +783,8 @@ function PromoteMemberModal({
           {Boolean(user?.segment || currentManager?.segment) && (
             <p style={{ margin: '4px 0 0 0', fontSize: 11, color: 'var(--muted-foreground)' }}>
               {lang === 'en'
-                ? `Synchronized with your segment (${user?.segment || currentManager?.segment}).`
-                : `Synchronisé avec votre segment (${user?.segment || currentManager?.segment}).`}
+                ? `Synchronized with your segment (${(user as any)?.displaySegment || ((user as any)?.zone ? `${user?.segment} (${(user as any).zone})` : (user?.segment || currentManager?.displaySegment || currentManager?.segment))}).`
+                : `Synchronisé avec votre segment (${(user as any)?.displaySegment || ((user as any)?.zone ? `${user?.segment} (${(user as any).zone})` : (user?.segment || currentManager?.displaySegment || currentManager?.segment))}).`}
             </p>
           )}
         </div>

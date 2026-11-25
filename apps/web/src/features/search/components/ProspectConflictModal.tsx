@@ -319,7 +319,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
                 {t('search.conflictSegment')} :
               </span>
               <span className="text-xs font-semibold text-foreground">
-                {conflict.segment}
+                {(conflict as any).displaySegment || ((conflict as any).zone ? `${conflict.segment} (${(conflict as any).zone})` : conflict.segment)}
               </span>
             </div>
           )}
