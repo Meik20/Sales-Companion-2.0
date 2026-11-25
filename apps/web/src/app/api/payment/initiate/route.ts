@@ -3,6 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { campayCollect } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PAID_PLANS, lookupPlan, resolvePlanAmount } from '@/lib/payment-plans'
+import { assertCanManageBilling } from '@/lib/org-billing-guard'
 import type { UserPlan } from '@sales-companion/shared'
 
 /**
@@ -30,6 +31,11 @@ export async function POST(request: NextRequest) {
       userEmail = decoded.email ?? ''
     } catch {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
+    }
+
+    const billingCheck = await assertCanManageBilling(userId)
+    if (!billingCheck.allowed) {
+      return NextResponse.json({ error: billingCheck.reason }, { status: 403 })
     }
 
     // ── Validation body ────────────────────────────────────────────────────

@@ -301,6 +301,14 @@ export function ProfileCard() {
 
   if (!user) return null
 
+  const isBillingRestricted =
+    user.role === 'manager' &&
+    ((user as any).orgRole === 'team_manager' ||
+      (user as any).orgRole === 'executive' ||
+      (user as any).isPrimarySeniorManager === false ||
+      Boolean((user as any).invitedByUid) ||
+      Boolean((user as any).seniorManagerUid))
+
   const userCountry = user.country || 'CM'
   const countryObj = SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)
   const countryName =
@@ -382,29 +390,37 @@ export function ProfileCard() {
                 </div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push(routes.upgrade)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 700,
-                background: subStatus.color,
-                color: '#ffffff',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'opacity 150ms ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              <span>Renouveler mon plan</span>
-              <ArrowRight size={14} />
-            </button>
+            {!isBillingRestricted ? (
+              <button
+                type="button"
+                onClick={() => router.push(routes.upgrade)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  background: subStatus.color,
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'opacity 150ms ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+              >
+                <span>Renouveler mon plan</span>
+                <ArrowRight size={14} />
+              </button>
+            ) : (
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)' }}>
+                {lang === 'en'
+                  ? 'Managed by primary organization initiator (SM1)'
+                  : "Géré par l'initiateur principal de l'organisation (SM1)"}
+              </span>
+            )}
           </div>
         )}
       {/* Header card with Company & Sector */}

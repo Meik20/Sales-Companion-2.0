@@ -124,6 +124,41 @@ export default function UpgradePage() {
   // Détecte si l'utilisateur arrive depuis la page d'inscription (nouveau manager)
   const isNewManager = searchParams.get('from') === 'register' && user?.role === 'manager'
 
+  // Vérification d'accès exclusif au SM1 pour les managers d'une organisation
+  const [isPrimarySmRemote, setIsPrimarySmRemote] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (userLoading || !user || user.role !== 'manager' || !(user as any).orgCode) {
+      setIsPrimarySmRemote(null)
+      return
+    }
+    let cancelled = false
+    user
+      .getIdToken()
+      .then((tok) =>
+        fetch('/api/team/org', { headers: { Authorization: `Bearer ${tok}` } }).then((r) =>
+          r.ok ? r.json() : null
+        )
+      )
+      .then((data) => {
+        if (!cancelled && data && typeof data.isPrimarySeniorManager === 'boolean') {
+          setIsPrimarySmRemote(data.isPrimarySeniorManager)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [user, userLoading])
+
+  const isBillingRestrictedManager =
+    user?.role === 'manager' &&
+    ((user as any).orgRole === 'team_manager' ||
+      (user as any).orgRole === 'executive' ||
+      (user as any).isPrimarySeniorManager === false ||
+      Boolean((user as any).invitedByUid) ||
+      Boolean((user as any).seniorManagerUid) ||
+      isPrimarySmRemote === false)
+
   // ── Écoute globale de surclassement de plan en direct ───────────────────────
   useEffect(() => {
     const handleUpgraded = (e: Event) => {
@@ -247,36 +282,33 @@ export default function UpgradePage() {
     }
   }
 
-  // Seul le Senior Manager (ou compte indépendant individuel ou admin) gère la facturation
+  // Seul le SM1 (initiateur principal de l'organisation), un compte indépendant ou un admin gère la facturation
   const isBillingOwner =
     user?.role === 'independent' ||
     user?.role === 'admin' ||
-    (user?.role === 'manager' && user?.orgRole === 'senior_manager') ||
-    (user?.role === 'manager' && Boolean(user?.orgCode) && !user?.seniorManagerUid)
+    (user?.role === 'manager' &&
+      !isBillingRestrictedManager &&
+      (user?.orgRole === 'senior_manager' ||
+        (Boolean(user?.orgCode) && !user?.seniorManagerUid)))
 
-  // ── Team Manager avec plan actif : rediriger directement vers son espace ──
-  // Un TM avec plan enterprise/pro hérité de son SM est pleinement opérationnel
-  // même si active===false (désynchronisation transitoire). On le renvoie
-  // immédiatement vers son espace sans l'afficher la page upgrade.
-  const isTeamManagerWithActivePlan =
+  // ── Membre d'organisation avec plan hérité actif : rediriger directement vers son espace ──
+  const isInheritedMemberWithActivePlan =
     !isBillingOwner &&
     user?.role === 'manager' &&
-    (user as any)?.orgRole === 'team_manager' &&
-    user?.plan &&
-    user.plan !== 'free'
+    Boolean(user?.plan && user.plan !== 'free')
 
   useEffect(() => {
-    if (!userLoading && user && isTeamManagerWithActivePlan) {
+    if (!userLoading && user && isInheritedMemberWithActivePlan) {
       const destination =
         searchParams.get('redirect') || routes.search
       router.replace(destination)
     }
-  }, [userLoading, user, isTeamManagerWithActivePlan, router, searchParams])
+  }, [userLoading, user, isInheritedMemberWithActivePlan, router, searchParams])
 
   // ── Écran d'avertissement informatif pour les non-gestionnaires de facturation ──
   if (!userLoading && user && !isBillingOwner) {
-    // Si le TM a un plan actif, on affiche un spinner le temps de la redirection
-    if (isTeamManagerWithActivePlan) {
+    // Si le membre a déjà un plan actif hérité, on affiche un spinner le temps de la redirection
+    if (isInheritedMemberWithActivePlan) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
           <span
@@ -331,7 +363,9 @@ export default function UpgradePage() {
                 color: 'var(--foreground, #f1f5f9)'
               }}
             >
-              {lang === 'en' ? 'Subscription managed by your Coordinator' : 'Abonnement géré par votre Coordinateur'}
+              {lang === 'en'
+                ? 'Subscription managed by your organization initiator (SM1)'
+                : "Abonnement géré par l'initiateur principal de l'organisation (SM1)"}
             </h2>
             <p
               style={{

@@ -128,12 +128,13 @@ export async function syncTeamMemberPlans(
       .get()
     usersByIdSnap.docs.forEach((d) => userDocsMap.set(d.id, d))
 
-    // B. Si Senior Manager d'un segment, cascade sur les TM et membres de SON segment uniquement
-    // RÈGLE MÉTIER (AGENTS.md) :
-    // - Les autres Senior Managers (orgRole === 'senior_manager') ne bénéficient pas du plan actif et gèrent leur propre plan de segment.
-    // - Seuls les Team Managers et commerciaux rattachés au segment de ce Senior Manager bénéficient de son plan.
+    // B. Si Senior Manager d'une organisation, cascade sur toute l'organisation (si SM1) ou son segment
     if (orgCode && isSeniorManager) {
-      // 1. Tous les Team Managers de ce segment
+      const orgSnap = await adminDb.collection('organisations').doc(orgCode).get().catch(() => null)
+      const orgData = orgSnap?.data()
+      const isPrimarySm = !orgData?.seniorManagerUid || orgData.seniorManagerUid === managerUid
+
+      // 1. Tous les managers de l'organisation (Coordinateurs, Exécutifs, Superviseurs)
       const orgManagersSnap = await adminDb
         .collection('users')
         .where('orgCode', '==', orgCode)
@@ -143,10 +144,16 @@ export async function syncTeamMemberPlans(
       orgManagersSnap.docs.forEach((doc) => {
         if (doc.id === managerUid) return
         const d = doc.data()
-        // EXCLUSION FORMELLE : Ne jamais synchroniser un autre Senior Manager
-        if (d.orgRole === 'senior_manager') return
 
-        // CONFINEMENT DE SEGMENT : Ne synchroniser que les Team Managers du segment de ce Senior Manager
+        if (isPrimarySm) {
+          // Le SM1 propage le plan à TOUTE l'entreprise (autres Coordinateurs, Exécutifs et Superviseurs)
+          userDocsMap.set(doc.id, doc)
+          managerUidsSet.add(doc.id)
+          return
+        }
+
+        if (d.orgRole === 'senior_manager' || d.orgRole === 'executive') return
+
         const belongsToSegment =
           d.seniorManagerUid === managerUid ||
           (Boolean(smSegment) && d.segment === smSegment) ||

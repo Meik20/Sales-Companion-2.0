@@ -105,13 +105,17 @@ export function AuthGuard({ children }: PropsWithChildren) {
     if (loading || finalizing || !user) return
     if (user.role !== 'manager') return
 
-    // Un Team Manager est identifiable soit par orgRole, soit par la présence
-    // de seniorManagerUid (compte joint via code organisation).
-    const isTeamManager =
-      (user as any).orgRole === 'team_manager' || Boolean((user as any).seniorManagerUid)
+    // Seul l'initiateur principal (SM1) d'une organisation gère la facturation.
+    // Les Superviseurs, Responsables Exécutifs et Coordinateurs invités héritent
+    // du plan de l'organisation et ne doivent JAMAIS être redirigés vers /upgrade.
+    const isManagedOrgMember =
+      (user as any).orgRole === 'team_manager' ||
+      (user as any).orgRole === 'executive' ||
+      (user as any).isPrimarySeniorManager === false ||
+      Boolean((user as any).invitedByUid) ||
+      Boolean((user as any).seniorManagerUid)
 
-    // Les TM ne gèrent jamais la facturation — ne jamais les envoyer vers /upgrade.
-    if (isTeamManager) return
+    if (isManagedOrgMember) return
 
     const emailVerificationPending = (user as any).emailVerificationPending
     const paymentPending = (user as any).paymentPending

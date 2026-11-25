@@ -3,6 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 // PLAN_LIMITS et UserPlan retirés : le plan n'est plus mis à jour ici.
 import { createAdminNotification } from '@/lib/admin-notifications'
+import { assertCanManageBilling } from '@/lib/org-billing-guard'
 
 /**
  * POST /api/payment/manual-submit
@@ -16,6 +17,11 @@ export async function POST(request: NextRequest) {
     const decoded = await adminAuth.verifyIdToken(token)
     const userId = decoded.uid
     const userEmail = decoded.email ?? ''
+
+    const billingCheck = await assertCanManageBilling(userId)
+    if (!billingCheck.allowed) {
+      return NextResponse.json({ error: billingCheck.reason }, { status: 403 })
+    }
 
     const body = await request.json()
     const { plan, operator, transactionId, amount } = body

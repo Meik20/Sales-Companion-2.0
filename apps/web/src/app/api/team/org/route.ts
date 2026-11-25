@@ -426,6 +426,8 @@ export async function PATCH(request: NextRequest) {
 
       if (inviteData.type === 'senior_manager') {
         updates.orgRole = 'senior_manager'
+        updates.isPrimarySeniorManager = false
+        updates.invitedByUid = inviteData.createdByUid || null
         updates.segment = inviteData.segment || body.segment?.trim() || null
         if (inviteData.zone) {
           updates.zone = inviteData.zone
@@ -434,6 +436,8 @@ export async function PATCH(request: NextRequest) {
         updates.seniorManagerUid = null
       } else if (inviteData.type === 'executive') {
         updates.orgRole = 'executive'
+        updates.isPrimarySeniorManager = false
+        updates.invitedByUid = inviteData.createdByUid || null
         // RÈGLE ARCHITECTURALE : segment et segments exclusivement issus du jeton d'invitation — jamais de fallback hardcodé
         const resolvedSegments: string[] = Array.isArray(inviteData.segments)
           ? inviteData.segments.filter(Boolean)
@@ -525,38 +529,66 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // 4. Héritage du plan du Senior Manager pour les Team Managers
-    // RÈGLE MÉTIER (AGENTS.md) :
-    // - Un Team Manager rattaché à un SM actif bénéficie immédiatement du plan et des quotas de ce SM.
-    // - Les autres Senior Managers (orgRole === 'senior_manager') ne bénéficient pas du plan actif et gèrent leur propre plan de segment.
+    // 4. Héritage du plan de l'initiateur (SM1 / Coordinateur) pour les membres rattachés à l'organisation
+    // RÈGLE MÉTIER :
+    // - Tout Team Manager, tout Coordinateur invité et tout Manager Exécutif invité hérite automatiquement
+    //   du plan actif et des échéances de l'initiateur de l'invitation / de l'organisation (SM1).
     const resolvedOrgRole = updates.orgRole || userData.orgRole
+    const resolvedOrgCode = updates.orgCode || userData.orgCode
     const resolvedSmUid = updates.seniorManagerUid || userData.seniorManagerUid
+    const isInvitedOrgRole =
+      resolvedOrgRole === 'team_manager' ||
+      resolvedOrgRole === 'executive' ||
+      (resolvedOrgRole === 'senior_manager' &&
+        (Boolean(body.inviteToken) || updates.isPrimarySeniorManager === false || Boolean(userData.invitedByUid)))
 
-    if (resolvedOrgRole === 'team_manager' && resolvedSmUid) {
+    if (isInvitedOrgRole && (resolvedSmUid || resolvedOrgCode)) {
       try {
-        const smDoc = await adminDb.collection('users').doc(resolvedSmUid).get()
-        if (smDoc.exists) {
-          const smData = smDoc.data()
-          if (hasActivePaidManagerAccess(smData)) {
-            const inheritedPlan = smData?.plan || 'enterprise'
-            updates.plan = inheritedPlan
-            updates.dailyLimit =
-              PLAN_LIMITS[inheritedPlan as keyof typeof PLAN_LIMITS] ?? 50
-            updates.subscriptionExpiresAt =
-              smData?.subscriptionExpiresAt ?? smData?.planExpiresAt ?? null
-            updates.subscriptionStartedAt = smData?.subscriptionStartedAt ?? null
-            updates.subscriptionExpired = false
+        let sourcePlanData: Record<string, any> | null = null
 
-            // Si l'email est déjà vérifié, passer directement au statut actif
-            if (userData.emailVerified === true && !userData.emailVerificationPending) {
-              updates.active = true
-              updates.activated = true
-              updates.activatedAt = new Date()
+        // 1. Priorité au Superviseur/Coordinateur créateur (pour TM) ou à l'initiateur de l'invitation
+        const directSourceUid = resolvedSmUid || updates.invitedByUid || userData.invitedByUid
+        if (directSourceUid) {
+          const srcDoc = await adminDb.collection('users').doc(directSourceUid).get()
+          if (srcDoc.exists && hasActivePaidManagerAccess(srcDoc.data())) {
+            sourcePlanData = srcDoc.data() || null
+          }
+        }
+
+        // 2. Repli / Source canonique : l'initiateur principal de l'organisation (SM1) ou organisations/{orgCode}
+        if (!sourcePlanData && resolvedOrgCode) {
+          const orgSnap = await adminDb.collection('organisations').doc(resolvedOrgCode).get()
+          const orgDocData = orgSnap.data()
+          if (orgDocData?.seniorManagerUid) {
+            const sm1Doc = await adminDb.collection('users').doc(orgDocData.seniorManagerUid).get()
+            if (sm1Doc.exists && hasActivePaidManagerAccess(sm1Doc.data())) {
+              sourcePlanData = sm1Doc.data() || null
             }
+          }
+          if (!sourcePlanData && orgDocData?.plan && orgDocData.plan !== 'free' && !orgDocData.subscriptionExpired) {
+            sourcePlanData = orgDocData
+          }
+        }
+
+        if (sourcePlanData) {
+          const inheritedPlan = sourcePlanData.plan || 'enterprise'
+          updates.plan = inheritedPlan
+          updates.dailyLimit =
+            PLAN_LIMITS[inheritedPlan as keyof typeof PLAN_LIMITS] ?? 50
+          updates.subscriptionExpiresAt =
+            sourcePlanData.subscriptionExpiresAt ?? sourcePlanData.planExpiresAt ?? null
+          updates.subscriptionStartedAt = sourcePlanData.subscriptionStartedAt ?? null
+          updates.subscriptionExpired = false
+
+          // Si l'email est déjà vérifié, passer directement au statut actif
+          if (userData.emailVerified === true && !userData.emailVerificationPending) {
+            updates.active = true
+            updates.activated = true
+            updates.activatedAt = new Date()
           }
         }
       } catch (planInheritErr) {
-        console.warn("[PATCH /api/team/org] Erreur lors de l'héritage du plan SM:", planInheritErr)
+        console.warn("[PATCH /api/team/org] Erreur lors de l'héritage du plan organisation:", planInheritErr)
       }
     }
 
