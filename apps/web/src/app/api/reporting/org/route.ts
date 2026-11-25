@@ -145,11 +145,16 @@ export async function GET(request: NextRequest) {
       return s === t || s.startsWith(t + ' (') || s.startsWith(t + ' —')
     }
 
-    // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation
+    // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation.
+    // ÉTANCHÉITÉ STRICTE : Un Coordinateur ne voit que lui-même et ses propres Superviseurs (seniorManagerUid === callerUid).
+    // Seul un Responsable Exécutif agrège tous les Coordinateurs et Superviseurs d'un segment observé.
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
       const mRole = mData.orgRole || 'team_manager'
       if (mRole === 'executive') return false
+      if (!isCallerExecutive) {
+        return d.id === decoded.uid || mData.seniorManagerUid === decoded.uid
+      }
       if (isDirectionSegment) return true
       return (
         matchesTargetSegment(mData.segment) ||

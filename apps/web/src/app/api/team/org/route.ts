@@ -169,6 +169,7 @@ export async function GET(request: NextRequest) {
     // Requiert un index composite Firestore : (orgCode ASC, role ASC)
     let managers: any[] = []
     let executives: any[] = []
+    let availableSegments: string[] = []
     let managersLoadError: string | null = null
     if (orgCode) {
       try {
@@ -189,12 +190,36 @@ export async function GET(request: NextRequest) {
           smSegmentMap.set(managerUid, userData.segment)
         }
 
+        // Liste globale des segments de base (noms uniquement) pour le sélecteur SM1 d'Exécutif
+        const segmentSet = new Set<string>()
+        orgManagersSnap.docs.forEach((d) => {
+          const md = d.data()
+          if (md.orgRole === 'senior_manager' && typeof md.segment === 'string' && md.segment.trim()) {
+            const base = md.segment.split('(')[0]?.trim().toUpperCase()
+            if (base) segmentSet.add(base)
+          }
+        })
+        if (typeof userData.segment === 'string' && userData.segment.trim()) {
+          const base = userData.segment.split('(')[0]?.trim().toUpperCase()
+          if (base) segmentSet.add(base)
+        }
+        availableSegments = Array.from(segmentSet).sort((a, b) => a.localeCompare(b, 'fr'))
+
         managers = orgManagersSnap.docs
           .filter((d) => {
-            const resolvedOrgRole = d.id === managerUid ? orgRole : d.data().orgRole || 'team_manager'
+            const mData = d.data()
+            const resolvedOrgRole = d.id === managerUid ? orgRole : mData.orgRole || 'team_manager'
             // RÈGLE ABSOLUE : Un Executive a un rôle purement stratégique et ne figure JAMAIS
             // dans la liste des managers opérationnels (Team Managers / Senior Managers).
-            return resolvedOrgRole !== 'executive'
+            if (resolvedOrgRole === 'executive') return false
+
+            // ÉTANCHÉITÉ STRICTE DES COORDINATEURS :
+            // Un Coordinateur ne voit JAMAIS les autres Coordinateurs ni les Superviseurs
+            // d'une autre équipe/zone, même sur le même segment.
+            if (orgRole === 'senior_manager') {
+              return d.id === managerUid || mData.seniorManagerUid === managerUid
+            }
+            return d.id === managerUid
           })
           .map((d) => {
           const mData = d.data()
@@ -264,6 +289,7 @@ export async function GET(request: NextRequest) {
       country: userData.country || 'CM',
       managers,
       executives,
+      availableSegments: isPrimarySeniorManager ? availableSegments : [],
       ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
   } catch (error: any) {

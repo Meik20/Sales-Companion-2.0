@@ -24,19 +24,28 @@ async function canAccessPipelineItem(
   if (userData?.role === 'admin') return true
   if (
     userData?.role === 'manager' &&
+    userData?.orgRole === 'executive' &&
+    userData?.orgCode &&
+    itemData.orgCode === userData.orgCode
+  ) {
+    return true
+  }
+  if (
+    userData?.role === 'manager' &&
     userData?.orgRole === 'senior_manager' &&
     userData?.orgCode
   ) {
-    if (itemData.orgCode && userData.orgCode === itemData.orgCode) {
-      return true
-    }
     if (itemData.seniorManagerUid === userId) {
       return true
     }
     if (adminDb && itemData.managerUid) {
       try {
         const mgrDoc = await adminDb.collection('users').doc(itemData.managerUid).get()
-        if (mgrDoc.exists && mgrDoc.data()?.orgCode === userData.orgCode) {
+        if (
+          mgrDoc.exists &&
+          mgrDoc.data()?.orgCode === userData.orgCode &&
+          mgrDoc.data()?.seniorManagerUid === userId
+        ) {
           return true
         }
       } catch (e) {
@@ -139,6 +148,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const userData = userDoc.data()
     const data = doc.data() || {}
 
+    if (userData?.role === 'manager' && userData?.orgRole === 'executive') {
+      return NextResponse.json(
+        { message: 'Un Responsable Exécutif est en lecture seule.' },
+        { status: 403 }
+      )
+    }
+
     if (!(await canAccessPipelineItem(userId, data, userData, adminDb))) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
@@ -224,6 +240,13 @@ export async function DELETE(
     const userDoc = await adminDb.collection('users').doc(userId).get()
     const userData = userDoc.data()
     const data = doc.data() || {}
+
+    if (userData?.role === 'manager' && userData?.orgRole === 'executive') {
+      return NextResponse.json(
+        { message: 'Un Responsable Exécutif est en lecture seule.' },
+        { status: 403 }
+      )
+    }
 
     if (!(await canAccessPipelineItem(userId, data, userData, adminDb))) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })

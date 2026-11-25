@@ -116,10 +116,12 @@ export async function fetchOrgConsolidatedPipeline(
     }
   }
 
-  // 3. Appliquer le filtre manager si demandé
-  // Si aucun filtre spécifique n'est passé et qu'un segment spécifique est demandé :
-  // Le pipeline consolidé regroupe TOUS les Coordinateurs et Superviseurs rattachés à ce segment (toutes zones confondues).
+  // 3. Isolation et ciblage des managers
+  // - Pour un Coordinateur (non-Exécutif) : ÉTANCHÉITÉ STRICTE sur son propre UID et ses Superviseurs directs
+  //   (seniorManagerUid === callerUid). Il ne voit jamais les données d'un autre Coordinateur, même sur le même segment.
+  // - Pour un Manager Exécutif : agrégation consolidée par segment (tous Coordinateurs et Superviseurs du segment).
   let targetManagerUids = orgManagerUids
+  const isCallerExecutive = callerOrgRole === 'executive'
   const matchesSegment = (seg?: string | null) => {
     if (!seg || !callerSegment) return false
     const s = seg.trim().toLowerCase()
@@ -127,7 +129,12 @@ export async function fetchOrgConsolidatedPipeline(
     return s === c || s.startsWith(c + ' (') || s.startsWith(c + ' —')
   }
 
-  if (callerSegment && !filterManagerUid) {
+  if (!isCallerExecutive) {
+    const ownScopeUids = filteredManagersDocs
+      .filter((d) => d.id === callerUid || d.data().seniorManagerUid === callerUid)
+      .map((d) => d.id)
+    targetManagerUids = ownScopeUids.length > 0 ? ownScopeUids : [callerUid]
+  } else if (callerSegment && !filterManagerUid) {
     const isDirectionSegment =
       callerSegment.toLowerCase() === 'direction' ||
       callerSegment.toLowerCase() === 'direction générale' ||
@@ -152,10 +159,13 @@ export async function fetchOrgConsolidatedPipeline(
     }
   }
 
-  // Si le manager ciblé est un Coordinateur (Senior Manager), on inclut le SM et tous les Superviseurs rattachés à son segment.
+  // Si un filtre manager précis est demandé, vérifier qu'il appartient bien au périmètre autorisé
   if (filterManagerUid) {
+    const allowedSet = new Set(targetManagerUids)
     const targetMgr = managersMap[filterManagerUid]
-    if (targetMgr && targetMgr.orgRole === 'senior_manager') {
+    if (!isCallerExecutive && !allowedSet.has(filterManagerUid)) {
+      targetManagerUids = []
+    } else if (targetMgr && targetMgr.orgRole === 'senior_manager') {
       const subordinateTmUids = filteredManagersDocs
         .filter((d) => d.id === filterManagerUid || d.data().seniorManagerUid === filterManagerUid)
         .map((d) => d.id)
@@ -331,8 +341,6 @@ export async function fetchOrgConsolidatedPipeline(
   //   L'Executive lui-même (et tout profil executive) ne figure JAMAIS dans cette liste.
   //   S'il est rattaché à un segment, seuls les Coordinateurs de son segment sont retournés.
   // - Pour un Coordinateur (Senior Manager) : afficher uniquement les Superviseurs (Team Managers) de son segment.
-  const isCallerExecutive = callerOrgRole === 'executive'
-
   const relevantManagersDocs = filteredManagersDocs.filter((d) => {
     const mRole = d.data().orgRole || 'team_manager'
     // RÈGLE ABSOLUE : Un Executive ne figure JAMAIS dans la liste des managers opérationnels
@@ -351,7 +359,7 @@ export async function fetchOrgConsolidatedPipeline(
       }
       return true
     }
-    return mRole !== 'senior_manager'
+    return mRole !== 'senior_manager' && d.data().seniorManagerUid === callerUid
   })
 
   const managersWithStats = relevantManagersDocs.map((d) => {

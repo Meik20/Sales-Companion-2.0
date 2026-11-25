@@ -30,9 +30,21 @@ export async function GET(request: NextRequest) {
     const orgCode = callerData?.orgCode as string | undefined
 
     let query: FirebaseFirestore.Query = adminDb.collection('team_accesses')
+    let allowedManagerUids: Set<string> | null = null
 
     if (isSenior && orgCode && (allOrg || requestedManagerUid)) {
+      // Étanchéité stricte : un Coordinateur ne peut voir que ses propres Superviseurs (seniorManagerUid === callerUid)
+      const subTmsSnap = await adminDb
+        .collection('users')
+        .where('orgCode', '==', orgCode)
+        .where('seniorManagerUid', '==', auth.user.uid)
+        .get()
+      allowedManagerUids = new Set<string>([auth.user.uid, ...subTmsSnap.docs.map((d) => d.id)])
+
       if (requestedManagerUid) {
+        if (!allowedManagerUids.has(requestedManagerUid)) {
+          return NextResponse.json({ error: 'Accès non autorisé à ce Superviseur' }, { status: 403 })
+        }
         query = query.where('managerUid', '==', requestedManagerUid)
       } else {
         query = query.where('orgCode', '==', orgCode)
@@ -45,6 +57,9 @@ export async function GET(request: NextRequest) {
 
     const candidateDocs = snap.docs.filter((doc) => {
       const data = doc.data()
+      if (allowedManagerUids && data.managerUid && !allowedManagerUids.has(data.managerUid)) {
+        return false
+      }
       // EXCLUSION FORMELLE : les support_agents ne font pas partie de l'équipe commerciale
       if (data.role === 'support_agent') return false
       // EXCLUSION FORMELLE : accès inactifs, révoqués ou déjà promus

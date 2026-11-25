@@ -85,6 +85,7 @@ interface OrgData {
   sector?: string | null
   managers?: OrgManagerItem[]
   executives?: OrgExecutiveItem[]
+  availableSegments?: string[]
 }
 
 export function OrgGovernanceTab() {
@@ -200,10 +201,18 @@ export function OrgGovernanceTab() {
       true
     )
 
-    // 2. Parcourir les autres Coordinateurs (en excluant m.isCurrent pour éviter tout doublon)
+    // 2. Parcourir les autres Coordinateurs éventuels
     ;(orgData?.managers || []).forEach((m) => {
       if (m.isCurrent || !m.isSenior) return
       addEntry(m.segment, (m as any).zone, m.name || m.email, false)
+    })
+
+    // 3. Inclure aussi les segments renvoyés par availableSegments (pour SM1 avec étanchéité)
+    ;(orgData?.availableSegments || []).forEach((seg) => {
+      const clean = seg.trim().toUpperCase()
+      if (clean && !grouped.has(clean)) {
+        grouped.set(clean, { segment: clean, names: [], isCurrent: false })
+      }
     })
 
     return Array.from(grouped.values()).map((g) => ({
@@ -211,7 +220,7 @@ export function OrgGovernanceTab() {
       coordinatorName: g.names.join(', '),
       isCurrent: g.isCurrent
     }))
-  }, [orgData?.segment, (orgData as any)?.zone, orgData?.managers, user?.segment, (user as any)?.zone, user?.name, user?.email, lang])
+  }, [orgData?.segment, (orgData as any)?.zone, orgData?.managers, orgData?.availableSegments, user?.segment, (user as any)?.zone, user?.name, user?.email, lang])
 
   const [editingExecUid, setEditingExecUid] = useState<string | null>(null)
   const [editingExecAll, setEditingExecAll] = useState<boolean>(true)
@@ -1036,7 +1045,6 @@ export function OrgGovernanceTab() {
                                         />
                                         <span className="truncate">
                                           <span className="font-semibold">{c.segment}</span>
-                                          <span className="text-muted-foreground ml-1.5">— {c.coordinatorName}</span>
                                         </span>
                                       </label>
                                     )

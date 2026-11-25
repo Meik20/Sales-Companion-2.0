@@ -60,6 +60,12 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+    if (callerData.role === 'manager' && callerData.orgRole === 'executive') {
+      return NextResponse.json(
+        { message: 'Un Responsable Exécutif est en lecture seule et ne peut pas ajouter d’opportunités.' },
+        { status: 403 }
+      )
+    }
     if (!['manager', 'independent', 'member'].includes(callerData.role)) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
