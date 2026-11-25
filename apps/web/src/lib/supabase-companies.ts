@@ -175,7 +175,8 @@ export interface ShortcutCountsResult {
 
 /**
  * Compte exclusivement les entreprises réellement présentes en base Supabase
- * pour le pays donné (zéro estimation, zéro fallback).
+ * pour le pays donné (zéro estimation, zéro fallback), en réutilisant
+ * exactement les mêmes filtres sectoriels/ville que searchSupabaseCompanies.
  */
 export async function getSupabaseShortcutCounts(params: {
   countryCode: string
@@ -190,19 +191,26 @@ export async function getSupabaseShortcutCounts(params: {
   }
 
   const cc = params.countryCode.toUpperCase()
+  const countViaSearch = async (sector: string, city?: string) => {
+    const res = await searchSupabaseCompanies({
+      country: cc,
+      sector,
+      city,
+      limit: 1,
+      offset: 0
+    })
+    return res?.total ?? 0
+  }
+
   const [btp, commerce, tech, agro, transport, sante, btpCity, techCity] = await Promise.all([
-    countSupabaseCompanies({ countryCode: cc, sector: 'BTP & Construction' }),
-    countSupabaseCompanies({ countryCode: cc, sector: 'Commerce' }),
-    countSupabaseCompanies({ countryCode: cc, sector: 'Technologies & Numérique' }),
-    countSupabaseCompanies({ countryCode: cc, sector: 'Agriculture & Agroalimentaire' }),
-    countSupabaseCompanies({ countryCode: cc, sector: 'Transport & Logistique' }),
-    countSupabaseCompanies({ countryCode: cc, sector: 'Santé' }),
-    params.btpCity
-      ? countSupabaseCompanies({ countryCode: cc, sector: 'BTP & Construction', city: params.btpCity })
-      : Promise.resolve(0),
-    params.techCity
-      ? countSupabaseCompanies({ countryCode: cc, sector: 'Technologies & Numérique', city: params.techCity })
-      : Promise.resolve(0)
+    countViaSearch('BTP & Construction'),
+    countViaSearch('Commerce'),
+    countViaSearch('Technologies & Numérique'),
+    countViaSearch('Agriculture & Agroalimentaire'),
+    countViaSearch('Transport & Logistique'),
+    countViaSearch('Santé'),
+    params.btpCity ? countViaSearch('BTP & Construction', params.btpCity) : Promise.resolve(0),
+    params.techCity ? countViaSearch('Technologies & Numérique', params.techCity) : Promise.resolve(0)
   ])
 
   return {
