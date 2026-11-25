@@ -29,6 +29,9 @@ export interface OrgManagerStats {
   orgRole: string
   isSenior: boolean
   isCurrent: boolean
+  segment?: string | null
+  zone?: string | null
+  displaySegment?: string | null
   stats: {
     prospection: number
     negociation: number

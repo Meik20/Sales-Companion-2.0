@@ -160,8 +160,8 @@ export default function PipelinePage() {
     const effectiveManagers = managersList.length > 0
       ? managersList
       : (user?.orgRole === 'senior_manager'
-          ? [{ uid: user.uid, isSenior: true, orgRole: 'senior_manager' }]
-          : [])
+        ? [{ uid: user.uid, isSenior: true, orgRole: 'senior_manager' }]
+        : [])
 
     // Ne retenir strictement que les objectifs de la période active sélectionnée
     const monthTargets = allTeamTargets.filter(
@@ -276,13 +276,13 @@ export default function PipelinePage() {
 
   const filteredItems = activeStage
     ? items.filter((i) => {
-        if (activeStage === 'prospection')
-          return ['prospection', 'prospect'].includes(i.status as string)
-        if (activeStage === 'negociation')
-          return ['negociation', 'negotiation'].includes(i.status as string)
-        if (activeStage === 'conclue') return ['conclue', 'conclusion'].includes(i.status as string)
-        return true
-      })
+      if (activeStage === 'prospection')
+        return ['prospection', 'prospect'].includes(i.status as string)
+      if (activeStage === 'negociation')
+        return ['negociation', 'negotiation'].includes(i.status as string)
+      if (activeStage === 'conclue') return ['conclue', 'conclusion'].includes(i.status as string)
+      return true
+    })
     : items
 
   return (
@@ -375,11 +375,10 @@ export default function PipelinePage() {
                 key={id}
                 type="button"
                 onClick={() => handleStageClick(id)}
-                className={`group relative overflow-hidden text-left cursor-pointer rounded-xl sm:rounded-2xl p-2.5 sm:p-5 transition-all duration-200 ease-smooth ${
-                  isSelected
-                    ? 'shadow-elevation-2 -translate-y-0.5'
-                    : 'hover:shadow-elevation-2 hover:-translate-y-0.5'
-                }`}
+                className={`group relative overflow-hidden text-left cursor-pointer rounded-xl sm:rounded-2xl p-2.5 sm:p-5 transition-all duration-200 ease-smooth ${isSelected
+                  ? 'shadow-elevation-2 -translate-y-0.5'
+                  : 'hover:shadow-elevation-2 hover:-translate-y-0.5'
+                  }`}
                 style={{
                   background: isSelected
                     ? `linear-gradient(135deg, var(--card) 0%, ${bgLight} 100%)`
@@ -581,11 +580,10 @@ export default function PipelinePage() {
                         setExecutiveSelectedSegment(seg)
                         setFilterManagerUid(undefined)
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-card text-foreground hover:bg-secondary border border-border'
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${isSelected
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-card text-foreground hover:bg-secondary border border-border'
+                        }`}
                     >
                       {seg}
                     </button>
@@ -679,8 +677,8 @@ export default function PipelinePage() {
                         >
                           <span>
                             {mgr.name || mgr.email}
-                            {isExecutive && ((mgr as any).displaySegment || (mgr as any).segment)
-                              ? ` · ${(mgr as any).displaySegment || (mgr as any).segment}`
+                            {isExecutive && (mgr.displaySegment || mgr.segment)
+                              ? ` · ${mgr.displaySegment || mgr.segment}`
                               : ''}
                           </span>
                         </button>
@@ -699,10 +697,10 @@ export default function PipelinePage() {
                   {selectedManager
                     ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}`
                     : (isExecutive
-                        ? (lang === 'en'
-                            ? `Consolidated Pipeline — Segment : ${activeSegment || 'All'}`
-                            : `Pipeline Consolidé — Segment : ${activeSegment || 'Tous'}`)
-                        : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
+                      ? (lang === 'en'
+                        ? `Consolidated Pipeline — Segment : ${activeSegment || 'All'}`
+                        : `Pipeline Consolidé — Segment : ${activeSegment || 'Tous'}`)
+                      : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
                 </span>
                 {filterManagerUid && (
                   <span
@@ -728,8 +726,8 @@ export default function PipelinePage() {
             subtitle={
               selectedManager
                 ? (lang === 'en'
-                    ? `Opportunities managed by ${selectedManager.name || 'this Supervisor'}`
-                    : `Opportunités gérées par ${selectedManager.name || 'ce Superviseur'}`)
+                  ? `Opportunities managed by ${selectedManager.name || 'this Supervisor'}`
+                  : `Opportunités gérées par ${selectedManager.name || 'ce Superviseur'}`)
                 : (t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment')
             }
           >
@@ -741,18 +739,18 @@ export default function PipelinePage() {
                 items={
                   ((selectedManager
                     ? (selectedManager.isSenior
-                        ? orgPipelineQuery.data?.items?.filter((i) => {
-                            const smUid = selectedManager.uid
-                            const mgr = (orgPipelineQuery.data?.managers || []).find((m) => m.uid === (i as any).managerUid)
-                            return (i as any).managerUid === smUid || (i as any).seniorManagerUid === smUid || (mgr && (mgr as any).seniorManagerUid === smUid)
-                          })
-                        : orgPipelineQuery.data?.items?.filter((i) => (i as any).managerUid === selectedManager.uid))
+                      ? orgPipelineQuery.data?.items?.filter((i) => {
+                        const smUid = selectedManager.uid
+                        const mgr = (orgPipelineQuery.data?.managers || []).find((m) => m.uid === (i as any).managerUid)
+                        return (i as any).managerUid === smUid || (i as any).seniorManagerUid === smUid || (mgr && (mgr as any).seniorManagerUid === smUid)
+                      })
+                      : orgPipelineQuery.data?.items?.filter((i) => (i as any).managerUid === selectedManager.uid))
                     : orgPipelineQuery.data?.items?.filter(
-                        (i) =>
-                          (i as any).managerOrgRole !== 'senior_manager' &&
-                          (i as any).managerOrgRole !== 'executive' &&
-                          (i as any).managerUid !== user?.uid
-                      )) ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
+                      (i) =>
+                        (i as any).managerOrgRole !== 'senior_manager' &&
+                        (i as any).managerOrgRole !== 'executive' &&
+                        (i as any).managerUid !== user?.uid
+                    )) ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
                 }
                 onClear={() => setFilterManagerUid(undefined)}
                 targets={selectedManager ? smFilteredTarget : smGlobalTarget}
@@ -775,11 +773,11 @@ export default function PipelinePage() {
                 description={
                   selectedManager
                     ? (lang === 'en'
-                        ? "This Supervisor doesn't have any registered opportunities yet."
-                        : "Ce Superviseur n'a pas encore d'opportunités enregistrées.")
+                      ? "This Supervisor doesn't have any registered opportunities yet."
+                      : "Ce Superviseur n'a pas encore d'opportunités enregistrées.")
                     : (lang === 'en'
-                        ? "Your Supervisors don't have any registered opportunities yet."
-                        : "Vos Superviseurs n'ont pas encore d'opportunités enregistrées.")
+                      ? "Your Supervisors don't have any registered opportunities yet."
+                      : "Vos Superviseurs n'ont pas encore d'opportunités enregistrées.")
                 }
               />
             ) : null}
@@ -1097,13 +1095,12 @@ export default function PipelinePage() {
             title={t('pipeline.myPipeline')}
             subtitle={
               activeStage
-                ? `${t('search.filterByStage')} ${
-                    activeStage === 'prospection'
-                      ? t('pipeline.prospection')
-                      : activeStage === 'negociation'
-                        ? t('pipeline.negotiation')
-                        : t('pipeline.closed')
-                  } (${filteredItems.length})`
+                ? `${t('search.filterByStage')} ${activeStage === 'prospection'
+                  ? t('pipeline.prospection')
+                  : activeStage === 'negociation'
+                    ? t('pipeline.negotiation')
+                    : t('pipeline.closed')
+                } (${filteredItems.length})`
                 : undefined
             }
             actions={
