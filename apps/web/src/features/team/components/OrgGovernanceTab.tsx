@@ -62,6 +62,15 @@ interface OrgManagerItem {
   createdAt?: string | null
 }
 
+interface OrgExecutiveItem {
+  uid: string
+  name: string
+  email: string
+  customRoleLabel?: string | null
+  segment?: string | null
+  segments?: string[]
+}
+
 interface OrgData {
   orgCode: string
   orgRole: 'senior_manager' | 'team_manager'
@@ -75,6 +84,7 @@ interface OrgData {
   companyName: string
   sector?: string | null
   managers?: OrgManagerItem[]
+  executives?: OrgExecutiveItem[]
 }
 
 export function OrgGovernanceTab() {
@@ -161,42 +171,109 @@ export function OrgGovernanceTab() {
     return Array.from(set)
   }, [orgData?.segment, orgData?.managers, user?.segment])
 
-  // Liste dynamique des segments des Coordinateurs existants dans l'organisation
+  // Liste dynamique des segments des Coordinateurs existants dans l'organisation (dédupliquée par segment de base)
   const coordinatorSegments = useMemo(() => {
-    const list: { segment: string; coordinatorName: string; isCurrent: boolean }[] = []
-    const seenSegments = new Set<string>()
+    const grouped = new Map<string, { segment: string; names: string[]; isCurrent: boolean }>()
 
-    // Inclure le segment du Coordinateur connecté s'il existe
-    const currentSmSegment = orgData?.segment || user?.segment
-    const currentSmZone = (orgData as any)?.zone || (user as any)?.zone
-    if (currentSmSegment?.trim()) {
-      const clean = currentSmSegment.trim()
-      const base = clean.split('(')[0]?.trim().toUpperCase() || clean
-      seenSegments.add(base.toLowerCase())
-      const zoneSuffix = currentSmZone ? ` (${currentSmZone})` : (clean.includes('(') ? '' : '')
-      list.push({
-        segment: base,
-        coordinatorName: `${user?.name || user?.email || (lang === 'en' ? 'Me' : 'Moi-même')}${zoneSuffix}`,
-        isCurrent: true
-      })
+    const addEntry = (rawSeg: string | null | undefined, zone: string | null | undefined, name: string, isCurrent: boolean) => {
+      if (!rawSeg?.trim()) return
+      const clean = rawSeg.trim()
+      const base = clean.split('(')[0]?.trim().toUpperCase() || clean.toUpperCase()
+      const zoneSuffix = zone?.trim() ? ` (${zone.trim()})` : ''
+      const label = `${name}${zoneSuffix}`
+      const existing = grouped.get(base)
+      if (!existing) {
+        grouped.set(base, { segment: base, names: [label], isCurrent })
+      } else {
+        if (!existing.names.includes(label)) {
+          existing.names.push(label)
+        }
+        if (isCurrent) existing.isCurrent = true
+      }
     }
 
-    // Parcourir les managers pour trouver les autres Coordinateurs (isSenior)
-    (orgData?.managers || []).forEach((m) => {
-      if (m.isSenior && m.segment?.trim()) {
-        const clean = m.segment.trim()
-        const base = clean.split('(')[0]?.trim().toUpperCase() || clean
-        const zoneSuffix = (m as any).zone ? ` (${(m as any).zone})` : ''
-        list.push({
-          segment: base,
-          coordinatorName: `${m.name || m.email}${zoneSuffix}`,
-          isCurrent: m.isCurrent
-        })
-      }
+    // 1. Inclure le segment du Coordinateur connecté
+    addEntry(
+      orgData?.segment || user?.segment,
+      (orgData as any)?.zone || (user as any)?.zone,
+      user?.name || user?.email || (lang === 'en' ? 'Me' : 'Moi-même'),
+      true
+    )
+
+    // 2. Parcourir les autres Coordinateurs (en excluant m.isCurrent pour éviter tout doublon)
+    ;(orgData?.managers || []).forEach((m) => {
+      if (m.isCurrent || !m.isSenior) return
+      addEntry(m.segment, (m as any).zone, m.name || m.email, false)
     })
 
-    return list
+    return Array.from(grouped.values()).map((g) => ({
+      segment: g.segment,
+      coordinatorName: g.names.join(', '),
+      isCurrent: g.isCurrent
+    }))
   }, [orgData?.segment, (orgData as any)?.zone, orgData?.managers, user?.segment, (user as any)?.zone, user?.name, user?.email, lang])
+
+  const [editingExecUid, setEditingExecUid] = useState<string | null>(null)
+  const [editingExecAll, setEditingExecAll] = useState<boolean>(true)
+  const [editingExecSegments, setEditingExecSegments] = useState<string[]>([])
+  const [savingExecSegments, setSavingExecSegments] = useState(false)
+
+  const startEditingExecSegments = (exec: OrgExecutiveItem) => {
+    const hasSpecific = Array.isArray(exec.segments) && exec.segments.length > 0
+    setEditingExecUid(exec.uid)
+    setEditingExecAll(!hasSpecific)
+    setEditingExecSegments(hasSpecific ? exec.segments! : [])
+  }
+
+  const saveExecSegments = async (execUid: string) => {
+    if (!user) return
+    setSavingExecSegments(true)
+    try {
+      const token = await user.getIdToken()
+      const payloadSegments = editingExecAll ? 'ALL' : editingExecSegments
+      const res = await fetch('/api/team/executives/segments', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ executiveUid: execUid, segments: payloadSegments })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur')
+      setOrgData((prev) =>
+        prev
+          ? {
+              ...prev,
+              executives: (prev.executives || []).map((ex) =>
+                ex.uid === execUid
+                  ? { ...ex, segments: data.segments, segment: data.segment }
+                  : ex
+              )
+            }
+          : prev
+      )
+      setEditingExecUid(null)
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Observed segments updated' : 'Segments d’observation mis à jour',
+        description:
+          editingExecAll || editingExecSegments.length === 0
+            ? lang === 'en'
+              ? 'Executive now has global oversight across all segments.'
+              : 'L’Exécutif dispose désormais d’une supervision globale.'
+            : `${lang === 'en' ? 'Active segments:' : 'Segments actifs :'} ${editingExecSegments.join(', ')}`
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'Update failed' : 'Échec de la mise à jour',
+        description: err?.message || 'Erreur inconnue'
+      })
+    } finally {
+      setSavingExecSegments(false)
+    }
+  }
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -1003,6 +1080,136 @@ export function OrgGovernanceTab() {
                           ? t('team.orgGovernance.generating')
                           : `Générer le lien — ${executiveCustomLabel.trim() || 'Responsable Exécutif'}`}
                     </button>
+
+                    {/* Gestion des segments des Responsables Exécutifs existants (SM1 uniquement) */}
+                    {orgData?.executives && orgData.executives.length > 0 && (
+                      <div className="mt-4 pt-3.5 border-t border-blue-500/20 space-y-2.5">
+                        <div className="text-[11.5px] font-bold text-foreground flex items-center justify-between">
+                          <span>
+                            {lang === 'en'
+                              ? `Existing Executive Managers (${orgData.executives.length})`
+                              : `Responsables Exécutifs actifs (${orgData.executives.length})`}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {orgData.executives.map((exec) => {
+                            const isEditing = editingExecUid === exec.uid
+                            const currentLabel =
+                              exec.segments && exec.segments.length > 0
+                                ? exec.segments.join(', ')
+                                : lang === 'en'
+                                  ? 'All segments (Global)'
+                                  : 'Tous les segments (Global)'
+                            return (
+                              <div
+                                key={exec.uid}
+                                className="rounded-lg border border-blue-300/40 dark:border-blue-500/25 bg-white/70 dark:bg-blue-950/20 p-2.5 text-[12px]"
+                              >
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="min-w-0">
+                                    <div className="font-semibold text-foreground truncate">
+                                      {exec.name}
+                                      {exec.customRoleLabel && (
+                                        <span className="ml-1.5 text-[10.5px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 rounded">
+                                          {exec.customRoleLabel}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-muted-foreground truncate">
+                                      {exec.email} · <span className="font-medium text-foreground">{currentLabel}</span>
+                                    </div>
+                                  </div>
+                                  {!isEditing && (
+                                    <button
+                                      type="button"
+                                      onClick={() => startEditingExecSegments(exec)}
+                                      className="rounded-md border border-blue-400/50 bg-blue-50 dark:bg-blue-500/15 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 cursor-pointer shrink-0"
+                                    >
+                                      {lang === 'en' ? 'Edit segments' : 'Modifier les segments'}
+                                    </button>
+                                  )}
+                                </div>
+
+                                {isEditing && (
+                                  <div className="mt-2.5 pt-2.5 border-t border-blue-300/30 space-y-2">
+                                    <label className="flex items-center gap-2 cursor-pointer text-[11.5px] font-semibold text-foreground">
+                                      <input
+                                        type="checkbox"
+                                        checked={editingExecAll}
+                                        onChange={(e) => {
+                                          setEditingExecAll(e.target.checked)
+                                          if (e.target.checked) {
+                                            setEditingExecSegments([])
+                                          } else if (coordinatorSegments.length > 0 && coordinatorSegments[0]?.segment) {
+                                            setEditingExecSegments([coordinatorSegments[0].segment])
+                                          }
+                                        }}
+                                        className="rounded border-blue-400 text-blue-600 h-3.5 w-3.5 cursor-pointer"
+                                      />
+                                      <span>
+                                        {lang === 'en'
+                                          ? 'All organization segments (Global Oversight)'
+                                          : 'Tous les segments de l’organisation (Global)'}
+                                      </span>
+                                    </label>
+                                    {coordinatorSegments.length > 0 && (
+                                      <div className="flex flex-wrap gap-2">
+                                        {coordinatorSegments.map((c) => {
+                                          const checked = !editingExecAll && editingExecSegments.includes(c.segment)
+                                          return (
+                                            <label
+                                              key={c.segment}
+                                              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-[11px] cursor-pointer hover:bg-blue-500/10"
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    setEditingExecAll(false)
+                                                    setEditingExecSegments((prev) => [...prev, c.segment])
+                                                  } else {
+                                                    const next = editingExecSegments.filter((s) => s !== c.segment)
+                                                    if (next.length === 0) setEditingExecAll(true)
+                                                    setEditingExecSegments(next)
+                                                  }
+                                                }}
+                                                className="rounded border-blue-400 text-blue-600 h-3 w-3 cursor-pointer"
+                                              />
+                                              <span className="font-semibold">{c.segment}</span>
+                                            </label>
+                                          )
+                                        })}
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2 justify-end">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingExecUid(null)}
+                                        disabled={savingExecSegments}
+                                        className="rounded-md px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+                                      >
+                                        {lang === 'en' ? 'Cancel' : 'Annuler'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => void saveExecSegments(exec.uid)}
+                                        disabled={savingExecSegments || (!editingExecAll && editingExecSegments.length === 0)}
+                                        className="rounded-md bg-blue-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50"
+                                      >
+                                        {savingExecSegments
+                                          ? (lang === 'en' ? 'Saving…' : 'Enregistrement…')
+                                          : (lang === 'en' ? 'Save' : 'Enregistrer')}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -162,9 +162,9 @@ export function ProfileCard() {
                 setResolvedSegment(data.segment)
               }
             })
-            .catch(() => {})
+            .catch(() => { })
         })
-        .catch(() => {})
+        .catch(() => { })
     }
   }, [user?.uid, user?.segment, user?.orgCode, user?.role])
 
@@ -331,10 +331,10 @@ export function ProfileCard() {
   const displaySegment = user.segment || resolvedSegment || null
   const showSegmentBadge = Boolean(
     displaySegment ||
-      user.orgCode ||
-      user.role === 'manager' ||
-      user.role === 'member' ||
-      user.role === 'support_agent'
+    user.orgCode ||
+    user.role === 'manager' ||
+    user.role === 'member' ||
+    user.role === 'support_agent'
   )
 
   const subStatus = getSubscriptionStatus(user.subscriptionExpiresAt, user.plan)

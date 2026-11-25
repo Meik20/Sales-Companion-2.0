@@ -168,6 +168,7 @@ export async function GET(request: NextRequest) {
     // Récupérer tous les managers de la même organisation.
     // Requiert un index composite Firestore : (orgCode ASC, role ASC)
     let managers: any[] = []
+    let executives: any[] = []
     let managersLoadError: string | null = null
     if (orgCode) {
       try {
@@ -222,6 +223,22 @@ export async function GET(request: NextRequest) {
           }
         })
 
+        if (isPrimarySeniorManager) {
+          executives = orgManagersSnap.docs
+            .filter((d) => (d.data().orgRole || 'team_manager') === 'executive')
+            .map((d) => {
+              const eData = d.data()
+              return {
+                uid: d.id,
+                name: eData.displayName || eData.name || eData.email,
+                email: eData.email,
+                customRoleLabel: eData.customRoleLabel || null,
+                segment: eData.segment || null,
+                segments: Array.isArray(eData.segments) ? eData.segments : []
+              }
+            })
+        }
+
         console.log(
           `[GET /api/team/org] Found ${managers.length} manager(s) for orgCode=${orgCode}`
         )
@@ -246,6 +263,7 @@ export async function GET(request: NextRequest) {
       sector: userData.sector || null,
       country: userData.country || 'CM',
       managers,
+      executives,
       ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
   } catch (error: any) {
