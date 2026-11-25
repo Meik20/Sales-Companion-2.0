@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const requestedSegment = searchParams.get('segment')
     const limit = parseInt(searchParams.get('limit') || '500', 10)
 
-    // Vérification et isolation stricte du segment pour l'Exécutif
+    // Vérification et isolation stricte du segment pour l'Exécutif et pour le Coordinateur (titulaire vs intérim)
     let effectiveSegment = requestedSegment || session.segment
     if (session.orgRole === 'executive') {
       const allowedSegments = Array.isArray(session.segments) && session.segments.length > 0
@@ -47,6 +47,29 @@ export async function GET(request: NextRequest) {
           // Si aucun segment spécifique n'est demandé par l'exécutif, on se positionne sur son premier segment autorisé
           effectiveSegment = allowedSegments[0]
         }
+      }
+    } else if (session.orgRole === 'senior_manager') {
+      // Pour le Coordinateur : son segment titulaire + les segments dont il a l'intérim
+      const titularSegment = session.segment
+      const interimList = Array.isArray(session.interimSegments) ? session.interimSegments : []
+      const interimSegNames = interimList.map((item) => item.segment).filter(Boolean)
+      const allowedSegments = [titularSegment, ...interimSegNames].filter(Boolean) as string[]
+
+      if (requestedSegment && allowedSegments.length > 0) {
+        const matchesAllowed = allowedSegments.some((seg) => {
+          const s = seg.toLowerCase().trim()
+          const r = requestedSegment.toLowerCase().trim()
+          return s === r || s.startsWith(r + ' (') || r.startsWith(s + ' (')
+        })
+        if (!matchesAllowed) {
+          return NextResponse.json(
+            { error: `Accès non autorisé au segment « ${requestedSegment} »` },
+            { status: 403 }
+          )
+        }
+        effectiveSegment = requestedSegment
+      } else {
+        effectiveSegment = titularSegment
       }
     }
 

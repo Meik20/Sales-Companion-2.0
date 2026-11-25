@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -328,7 +328,8 @@ export function ProfileCard() {
     localProfile?.sector !== undefined ? localProfile.sector : user.sector || user.industry
   const displayRegion = localProfile?.region !== undefined ? localProfile.region : user.region
   const displayPhone = localProfile?.phone !== undefined ? localProfile.phone : user.phone
-  const displaySegment = user.segment || resolvedSegment || null
+  const rawBaseSeg = user.segment || resolvedSegment || null
+  const displaySegment = user.displaySegment || (user.zone && rawBaseSeg ? `${rawBaseSeg} (${user.zone})` : rawBaseSeg)
   const showSegmentBadge = Boolean(
     displaySegment ||
     user.orgCode ||

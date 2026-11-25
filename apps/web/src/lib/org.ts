@@ -45,3 +45,30 @@ export function isValidNiuFormat(niu: string): boolean {
   if (!normalized) return false
   return /^[A-Z0-9]{6,30}$/.test(normalized)
 }
+
+/**
+ * Formate l'affichage officiel du segment avec sa zone géographique :
+ * Exemple : "PME (Ouest)", "SOHO (Littoral)"
+ * Si la zone est absente ou déjà incluse, renvoie le segment proprement.
+ */
+export function formatDisplaySegment(
+  segment?: string | null,
+  zone?: string | null,
+  displaySegment?: string | null
+): string | null {
+  if (displaySegment && typeof displaySegment === 'string' && displaySegment.trim()) {
+    return displaySegment.trim()
+  }
+  if (!segment || typeof segment !== 'string' || !segment.trim()) {
+    return null
+  }
+  const cleanSeg = segment.trim()
+  if (cleanSeg.includes('(')) {
+    return cleanSeg
+  }
+  if (zone && typeof zone === 'string' && zone.trim()) {
+    return `${cleanSeg} (${zone.trim()})`
+  }
+  return cleanSeg
+}
+

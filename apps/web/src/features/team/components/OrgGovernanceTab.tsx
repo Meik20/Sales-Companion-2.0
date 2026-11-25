@@ -92,6 +92,9 @@ interface OrgData {
   isPrimarySeniorManager?: boolean
   primarySeniorManagerUid?: string | null
   segment?: string | null
+  zone?: string | null
+  displaySegment?: string | null
+  interimSegments?: Array<{ segment: string; zone?: string | null; displaySegment?: string; assignedAt?: string; assignedByUid?: string }>
   seniorManagerUid?: string | null
   niu: string | null
   isVerified: boolean
@@ -145,7 +148,11 @@ export function OrgGovernanceTab() {
   const [selectedCoordinator, setSelectedCoordinator] = useState<OrgCoordinatorItem | null>(null)
   const [coordNewSegment, setCoordNewSegment] = useState('')
   const [coordNewZone, setCoordNewZone] = useState('')
+  const [coordPropagate, setCoordPropagate] = useState(false)
   const [savingCoordinator, setSavingCoordinator] = useState(false)
+  const [interimSegmentInput, setInterimSegmentInput] = useState('')
+  const [interimZoneInput, setInterimZoneInput] = useState('')
+  const [savingInterim, setSavingInterim] = useState(false)
   const coordinatorDropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -600,7 +607,8 @@ export function OrgGovernanceTab() {
         body: JSON.stringify({
           coordinatorUid: selectedCoordinator.uid,
           newSegment: coordNewSegment.trim(),
-          newZone: coordNewZone.trim()
+          newZone: coordNewZone.trim(),
+          propagateToSubordinates: coordPropagate
         })
       })
       const data = await res.json()
@@ -623,6 +631,8 @@ export function OrgGovernanceTab() {
         const nextState: any = { ...prev, coordinators: updatedCoordinators }
         if (selectedCoordinator.uid === user?.uid) {
           nextState.segment = data.coordinator?.segment || coordNewSegment.trim().toUpperCase()
+          nextState.zone = data.coordinator?.zone || coordNewZone.trim()
+          nextState.displaySegment = data.coordinator?.displaySegment
         }
         return nextState
       })
@@ -636,10 +646,109 @@ export function OrgGovernanceTab() {
     } catch (err: any) {
       pushToast({
         type: 'error',
-        title: err.message || (lang === 'en' ? 'Update failed' : 'Échec de la mise à jour')
+        title: lang === 'en' ? 'Update failed' : 'Échec de la mise à jour',
+        description: err.message
       })
     } finally {
       setSavingCoordinator(false)
+    }
+  }
+
+  const handleAssignInterim = async () => {
+    if (!selectedCoordinator || !interimSegmentInput.trim()) return
+    setSavingInterim(true)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/coordinator/interim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          coordinatorUid: selectedCoordinator.uid,
+          action: 'assign',
+          segment: interimSegmentInput.trim(),
+          zone: interimZoneInput.trim()
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || data.error || "Erreur lors de l'assignation de l'intérim")
+
+      // Mettre à jour orgData localement
+      setOrgData((prev: any) => {
+        if (!prev) return prev
+        const updatedCoordinators = (prev.coordinators || []).map((c: any) => {
+          if (c.uid === selectedCoordinator.uid) {
+            return {
+              ...c,
+              interimSegments: data.interimSegments
+            }
+          }
+          return c
+        })
+        return { ...prev, coordinators: updatedCoordinators }
+      })
+
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Interim assigned' : 'Intérim affecté',
+        description: data.message
+      })
+      setInterimSegmentInput('')
+      setInterimZoneInput('')
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'Interim assignment failed' : "Échec de l'affectation",
+        description: err.message
+      })
+    } finally {
+      setSavingInterim(false)
+    }
+  }
+
+  const handleRemoveInterim = async (segToRemove: string) => {
+    if (!selectedCoordinator) return
+    setSavingInterim(true)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/coordinator/interim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          coordinatorUid: selectedCoordinator.uid,
+          action: 'remove',
+          segment: segToRemove
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || data.error || "Erreur lors du retrait de l'intérim")
+
+      setOrgData((prev: any) => {
+        if (!prev) return prev
+        const updatedCoordinators = (prev.coordinators || []).map((c: any) => {
+          if (c.uid === selectedCoordinator.uid) {
+            return {
+              ...c,
+              interimSegments: data.interimSegments
+            }
+          }
+          return c
+        })
+        return { ...prev, coordinators: updatedCoordinators }
+      })
+
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Interim removed' : 'Intérim retiré',
+        description: data.message
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'Removal failed' : 'Échec du retrait',
+        description: err.message
+      })
+    } finally {
+      setSavingInterim(false)
     }
   }
 
@@ -841,7 +950,7 @@ export function OrgGovernanceTab() {
                   {!editingSegment || !canEditGovernance ? (
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-[16px] font-bold text-foreground">
-                        {orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault')}
+                        {orgData?.displaySegment || (orgData?.zone ? `${orgData.segment} (${orgData.zone})` : (user as any)?.displaySegment || ((user as any)?.zone ? `${user?.segment} (${(user as any).zone})` : (user?.segment || t('team.orgGovernance.segmentDefault'))))}
                       </span>
                       {canEditGovernance && (
                         <button
@@ -934,7 +1043,7 @@ export function OrgGovernanceTab() {
                         <span>{t('team.orgGovernance.tmInviteTitle')}</span>
                       </span>
                       <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-md">
-                        {t('team.orgGovernance.tmSegmentBadge').replace('{segment}', orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault'))}
+                        {t('team.orgGovernance.tmSegmentBadge').replace('{segment}', orgData?.displaySegment || (orgData?.zone ? `${orgData.segment} (${orgData.zone})` : (orgData?.segment || (user as any)?.displaySegment || ((user as any)?.zone ? `${user?.segment} (${(user as any).zone})` : (user?.segment || t('team.orgGovernance.segmentDefault'))))))}
                       </span>
                     </div>
                     <InfoTooltip
@@ -1064,6 +1173,9 @@ export function OrgGovernanceTab() {
                                         setSelectedCoordinator(coord)
                                         setCoordNewSegment(coord.segment?.split('(')[0]?.trim() || '')
                                         setCoordNewZone(coord.zone || '')
+                                        setCoordPropagate(false)
+                                        setInterimSegmentInput('')
+                                        setInterimZoneInput('')
                                         setCoordinatorDropdownOpen(false)
                                       }}
                                       className="w-full flex items-center justify-between gap-2 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
@@ -1157,11 +1269,30 @@ export function OrgGovernanceTab() {
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
-                                <span className="text-[10.5px] text-muted-foreground leading-tight">
+                              {/* Option de propagation en cascade */}
+                              <div className="flex items-center gap-2 pt-0.5">
+                                <input
+                                  type="checkbox"
+                                  id="coord-propagate-cb"
+                                  checked={coordPropagate}
+                                  onChange={(e) => setCoordPropagate(e.target.checked)}
+                                  className="h-3.5 w-3.5 rounded border-border text-violet-600 focus:ring-violet-500 cursor-pointer"
+                                />
+                                <label
+                                  htmlFor="coord-propagate-cb"
+                                  className="text-[11px] font-medium text-foreground cursor-pointer select-none"
+                                >
                                   {lang === 'en'
-                                    ? 'Propagates to subordinates and pipeline.'
-                                    : 'Propagé automatiquement aux superviseurs et fiches.'}
+                                    ? 'Propagate to subordinates and pipeline items (global renaming)'
+                                    : 'Mettre à jour également les superviseurs et fiches actuelles (renommage global du segment)'}
+                                </label>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
+                                <span className="text-[10px] text-muted-foreground leading-tight">
+                                  {coordPropagate
+                                    ? (lang === 'en' ? 'Subordinates will inherit the new segment.' : 'Les superviseurs et opportunités hériteront du nouveau segment.')
+                                    : (lang === 'en' ? 'Only coordinator profile is updated (mutation/reassignment).' : 'Seul le profil du Coordinateur est mis à jour (mutation/affectation locale).')}
                                 </span>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -1183,6 +1314,97 @@ export function OrgGovernanceTab() {
                                     {lang === 'en' ? 'Save' : 'Enregistrer'}
                                   </Button>
                                 </div>
+                              </div>
+                            </div>
+
+                            {/* Section Intérim du Coordinateur */}
+                            <div className="rounded-lg border border-amber-500/30 p-3 bg-amber-500/5 flex flex-col gap-2.5">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11.5px] font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                                  <span>{lang === 'en' ? 'Interim Segments' : 'Segments par Intérim'}</span>
+                                </span>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25">
+                                  {lang === 'en' ? 'Watertight navigation' : 'Navigation étanche'}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground m-0">
+                                {lang === 'en'
+                                  ? 'Assign a second segment on an interim basis. The coordinator can switch between pipelines without data mixing.'
+                                  : 'Affecter un second segment par intérim. Le coordinateur pourra commuter entre les pipelines sans aucun mélange.'}
+                              </p>
+
+                              {/* Liste des intérims actifs */}
+                              {Array.isArray((selectedCoordinator as any).interimSegments) &&
+                              (selectedCoordinator as any).interimSegments.length > 0 ? (
+                                <div className="space-y-1.5 pt-1">
+                                  {(selectedCoordinator as any).interimSegments.map((it: any) => (
+                                    <div
+                                      key={it.segment}
+                                      className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card border border-border text-[11.5px]"
+                                    >
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-bold text-foreground">
+                                          {it.displaySegment || (it.zone ? `${it.segment} (${it.zone})` : it.segment)}
+                                        </span>
+                                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold border border-amber-500/25">
+                                          {lang === 'en' ? 'Active Interim' : 'Intérim actif'}
+                                        </span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => void handleRemoveInterim(it.segment)}
+                                        disabled={savingInterim}
+                                        className="text-[11px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 cursor-pointer px-2 py-0.5 rounded hover:bg-red-500/10"
+                                      >
+                                        {lang === 'en' ? 'Remove' : 'Retirer'}
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-[11px] text-muted-foreground italic py-0.5">
+                                  {lang === 'en' ? 'No interim segment currently assigned.' : 'Aucun segment d’intérim actuellement affecté.'}
+                                </div>
+                              )}
+
+                              {/* Formulaire d'affectation d'intérim */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-amber-500/20">
+                                <div>
+                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
+                                    {lang === 'en' ? 'Interim Segment *' : 'Segment d’intérim *'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={interimSegmentInput}
+                                    onChange={(e) => setInterimSegmentInput(e.target.value)}
+                                    placeholder="Ex: SOHO, PME, BTP…"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-amber-500 focus:outline-none uppercase"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
+                                    {lang === 'en' ? 'Zone (Optional)' : 'Zone (Optionnelle)'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={interimZoneInput}
+                                    onChange={(e) => setInterimZoneInput(e.target.value)}
+                                    placeholder="Ex: Littoral, Nord, Ouest…"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-amber-500 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end pt-1">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="primary"
+                                  loading={savingInterim}
+                                  disabled={!interimSegmentInput.trim()}
+                                  onClick={() => void handleAssignInterim()}
+                                >
+                                  {lang === 'en' ? 'Assign Interim' : 'Affecter l’intérim'}
+                                </Button>
                               </div>
                             </div>
                           </div>

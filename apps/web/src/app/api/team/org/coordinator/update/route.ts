@@ -72,10 +72,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Corps de requête JSON invalide' }, { status: 400 })
     }
 
-    const { coordinatorUid, newSegment, newZone } = body as {
+    const { coordinatorUid, newSegment, newZone, propagateToSubordinates } = body as {
       coordinatorUid?: string
       newSegment?: string
       newZone?: string
+      propagateToSubordinates?: boolean
     }
 
     if (!coordinatorUid || typeof coordinatorUid !== 'string') {
@@ -127,85 +128,89 @@ export async function PATCH(request: NextRequest) {
       console.warn('[PATCH /api/team/org/coordinator/update] Auth claims sync warning:', claimErr)
     }
 
-    // 5. Propagation aux Superviseurs (TMs) rattachés à ce Coordinateur et leurs membres
+    // 5. Propagation optionnelle (uniquement si explicitement demandé, ex: renommage global du segment)
+    // En cas de simple mutation ou changement d'affectation de ville, les superviseurs et fiches actuels conservent leur segment territorial.
     let subordinateCount = 0
-    try {
-      const subordinateTmsSnap = await adminDb
-        .collection('users')
-        .where('orgCode', '==', orgCode)
-        .where('seniorManagerUid', '==', coordinatorUid)
-        .get()
-
-      const tmUids = subordinateTmsSnap.docs.map((d) => d.id)
-      const userDocsToUpdate = new Map<string, FirebaseFirestore.DocumentReference>()
-
-      subordinateTmsSnap.docs.forEach((d) => {
-        userDocsToUpdate.set(d.id, d.ref)
-      })
-
-      // Récupérer les membres rattachés à ces TMs
-      if (tmUids.length > 0) {
-        for (let i = 0; i < tmUids.length; i += 10) {
-          const chunk = tmUids.slice(i, i + 10)
-          const membersSnap = await adminDb
-            .collection('users')
-            .where('orgCode', '==', orgCode)
-            .where('managerUid', 'in', chunk)
-            .get()
-          membersSnap.docs.forEach((d) => userDocsToUpdate.set(d.id, d.ref))
-        }
-      }
-
-      // Appliquer les batches de mise à jour sur les utilisateurs subordonnés
-      if (userDocsToUpdate.size > 0) {
-        const userBatch = adminDb.batch()
-        userDocsToUpdate.forEach((ref) => {
-          userBatch.update(ref, {
-            segment: newSegmentTrimmed,
-            displaySegment,
-            updatedAt: now
-          })
-        })
-        await userBatch.commit()
-        subordinateCount = userDocsToUpdate.size
-      }
-    } catch (subErr) {
-      console.warn('[PATCH /api/team/org/coordinator/update] Subordinates propagation warning:', subErr)
-    }
-
-    // 6. Propagation aux fiches pipeline du Coordinateur et de ses TMs
     let pipelineCount = 0
-    try {
-      const managerUidsToQuery = [coordinatorUid]
-      const subordinateTmsSnap = await adminDb
-        .collection('users')
-        .where('orgCode', '==', orgCode)
-        .where('seniorManagerUid', '==', coordinatorUid)
-        .get()
-      subordinateTmsSnap.docs.forEach((d) => managerUidsToQuery.push(d.id))
 
-      for (let i = 0; i < managerUidsToQuery.length; i += 10) {
-        const chunk = managerUidsToQuery.slice(i, i + 10)
-        const pipelineSnap = await adminDb
-          .collection('pipeline')
-          .where('managerUid', 'in', chunk)
+    if (propagateToSubordinates === true) {
+      try {
+        const subordinateTmsSnap = await adminDb
+          .collection('users')
+          .where('orgCode', '==', orgCode)
+          .where('seniorManagerUid', '==', coordinatorUid)
           .get()
 
-        if (!pipelineSnap.empty) {
-          const pBatch = adminDb.batch()
-          pipelineSnap.docs.forEach((pDoc) => {
-            pBatch.update(pDoc.ref, {
+        const tmUids = subordinateTmsSnap.docs.map((d) => d.id)
+        const userDocsToUpdate = new Map<string, FirebaseFirestore.DocumentReference>()
+
+        subordinateTmsSnap.docs.forEach((d) => {
+          userDocsToUpdate.set(d.id, d.ref)
+        })
+
+        // Récupérer les membres rattachés à ces TMs
+        if (tmUids.length > 0) {
+          for (let i = 0; i < tmUids.length; i += 10) {
+            const chunk = tmUids.slice(i, i + 10)
+            const membersSnap = await adminDb
+              .collection('users')
+              .where('orgCode', '==', orgCode)
+              .where('managerUid', 'in', chunk)
+              .get()
+            membersSnap.docs.forEach((d) => userDocsToUpdate.set(d.id, d.ref))
+          }
+        }
+
+        // Appliquer les batches de mise à jour sur les utilisateurs subordonnés
+        if (userDocsToUpdate.size > 0) {
+          const userBatch = adminDb.batch()
+          userDocsToUpdate.forEach((ref) => {
+            userBatch.update(ref, {
               segment: newSegmentTrimmed,
               displaySegment,
               updatedAt: now
             })
           })
-          await pBatch.commit()
-          pipelineCount += pipelineSnap.size
+          await userBatch.commit()
+          subordinateCount = userDocsToUpdate.size
         }
+      } catch (subErr) {
+        console.warn('[PATCH /api/team/org/coordinator/update] Subordinates propagation warning:', subErr)
       }
-    } catch (pErr) {
-      console.warn('[PATCH /api/team/org/coordinator/update] Pipeline propagation warning:', pErr)
+
+      // 6. Propagation aux fiches pipeline du Coordinateur et de ses TMs
+      try {
+        const managerUidsToQuery = [coordinatorUid]
+        const subordinateTmsSnap = await adminDb
+          .collection('users')
+          .where('orgCode', '==', orgCode)
+          .where('seniorManagerUid', '==', coordinatorUid)
+          .get()
+        subordinateTmsSnap.docs.forEach((d) => managerUidsToQuery.push(d.id))
+
+        for (let i = 0; i < managerUidsToQuery.length; i += 10) {
+          const chunk = managerUidsToQuery.slice(i, i + 10)
+          const pipelineSnap = await adminDb
+            .collection('pipeline')
+            .where('managerUid', 'in', chunk)
+            .get()
+
+          if (!pipelineSnap.empty) {
+            const pBatch = adminDb.batch()
+            pipelineSnap.docs.forEach((pDoc) => {
+              pBatch.update(pDoc.ref, {
+                segment: newSegmentTrimmed,
+                displaySegment,
+                updatedAt: now
+              })
+            })
+            await pBatch.commit()
+            pipelineCount += pipelineSnap.size
+          }
+        }
+      } catch (pErr) {
+        console.warn('[PATCH /api/team/org/coordinator/update] Pipeline propagation warning:', pErr)
+      }
     }
 
     // Signal temps réel organisation

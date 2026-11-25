@@ -13,6 +13,9 @@ export interface ServerSession {
   managerUid?: string | null
   segment?: string | null
   segments?: string[] | null
+  zone?: string | null
+  displaySegment?: string | null
+  interimSegments?: Array<{ segment: string; zone?: string | null; displaySegment?: string; assignedAt?: string; assignedByUid?: string }>
   active: boolean
   activated: boolean
   emailVerified: boolean
@@ -67,6 +70,9 @@ export async function authenticateServerRequest(request: NextRequest): Promise<S
     managerUid: userData.managerUid || null,
     segment: userData.segment || null,
     segments: Array.isArray(userData.segments) ? userData.segments : (userData.segment ? [userData.segment] : []),
+    zone: userData.zone || null,
+    displaySegment: userData.displaySegment || (userData.zone && userData.segment ? `${userData.segment} (${userData.zone})` : userData.segment || null),
+    interimSegments: Array.isArray(userData.interimSegments) ? userData.interimSegments : [],
     active: Boolean(userData.active),
     activated: Boolean(userData.activated),
     emailVerified: isMemberByInvitation ? true : Boolean(userData.emailVerified || decodedToken.email_verified),

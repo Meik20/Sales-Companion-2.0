@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -61,6 +61,7 @@ export default function PipelinePage() {
   // ── Org pipeline (Senior Manager & Executive) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
   const [executiveSelectedSegment, setExecutiveSelectedSegment] = useState<string | undefined>(undefined)
+  const [coordinatorSelectedSegment, setCoordinatorSelectedSegment] = useState<string | undefined>(undefined)
 
   // Segments supervisés par le Responsable Exécutif (restreints ou tous)
   const executiveSegments = useMemo(() => {
@@ -74,7 +75,33 @@ export default function PipelinePage() {
     return []
   }, [isExecutive, user?.segments, user?.segment])
 
-  const activeSegment = isExecutive ? (executiveSelectedSegment || executiveSegments[0]) : undefined
+  // Segments d'un Coordinateur (Segment Titulaire + Segments d'intérim)
+  const coordinatorSegmentsList = useMemo(() => {
+    if (!isSeniorManager) return []
+    const list: Array<{ segment: string; display: string; isInterim: boolean }> = []
+    if (user?.segment) {
+      const titularDisplay = user.displaySegment || (user.zone ? `${user.segment} (${user.zone})` : user.segment)
+      list.push({ segment: user.segment, display: titularDisplay, isInterim: false })
+    }
+    if (Array.isArray(user?.interimSegments)) {
+      user.interimSegments.forEach((item) => {
+        if (item.segment && !list.some((l) => l.segment.toLowerCase() === item.segment.toLowerCase())) {
+          list.push({
+            segment: item.segment,
+            display: item.displaySegment || (item.zone ? `${item.segment} (${item.zone})` : item.segment),
+            isInterim: true
+          })
+        }
+      })
+    }
+    return list
+  }, [isSeniorManager, user?.segment, user?.zone, user?.displaySegment, user?.interimSegments])
+
+  const activeSegment = isExecutive
+    ? (executiveSelectedSegment || executiveSegments[0])
+    : isSeniorManager && coordinatorSegmentsList.length > 1
+      ? (coordinatorSelectedSegment || coordinatorSegmentsList[0]?.segment)
+      : undefined
 
   const orgPipelineQuery = useOrgPipeline({
     managerUid: filterManagerUid,
@@ -593,6 +620,47 @@ export default function PipelinePage() {
             </div>
           )}
 
+          {/* ── Commutateur étanche de Segment pour le Coordinateur (Titulaire vs Intérim) ── */}
+          {isSeniorManager && coordinatorSegmentsList.length > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+              <div className="flex items-center gap-2 shrink-0">
+                <Layers size={14} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                <span className="text-[11px] font-bold text-violet-700 dark:text-violet-300 uppercase tracking-wider">
+                  {lang === 'en' ? 'Active Segment :' : 'Segment actif :'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {coordinatorSegmentsList.map((item) => {
+                  const isSelected = (coordinatorSelectedSegment || coordinatorSegmentsList[0]?.segment) === item.segment
+                  return (
+                    <button
+                      key={item.segment}
+                      type="button"
+                      onClick={() => {
+                        setCoordinatorSelectedSegment(item.segment)
+                        setFilterManagerUid(undefined)
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${isSelected
+                        ? 'bg-violet-600 text-white shadow-xs'
+                        : 'bg-card text-foreground hover:bg-secondary border border-border'
+                        }`}
+                    >
+                      <span>{item.display}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${isSelected
+                        ? 'bg-white/20 text-white'
+                        : item.isInterim
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25'
+                          : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25'
+                        }`}>
+                        {item.isInterim ? (lang === 'en' ? 'Interim' : 'Intérim') : (lang === 'en' ? 'Titular' : 'Titulaire')}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Filtre par Senior Manager ou Team Manager */}
           {orgPipelineQuery.data?.managers &&
             orgPipelineQuery.data.managers.length > 0 && (
@@ -677,7 +745,7 @@ export default function PipelinePage() {
                         >
                           <span>
                             {mgr.name || mgr.email}
-                            {isExecutive && (mgr.displaySegment || mgr.segment)
+                            {(mgr.displaySegment || mgr.segment)
                               ? ` · ${mgr.displaySegment || mgr.segment}`
                               : ''}
                           </span>

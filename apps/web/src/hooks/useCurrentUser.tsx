@@ -19,6 +19,9 @@ export type CurrentUser = {
   orgRole?: 'senior_manager' | 'team_manager' | 'executive' | null
   segment?: string | null
   segments?: string[] | null
+  zone?: string | null
+  displaySegment?: string | null
+  interimSegments?: Array<{ segment: string; zone?: string | null; displaySegment?: string; assignedAt?: string; assignedByUid?: string }>
   seniorManagerUid?: string | null
   niu?: string | null
   customRoleLabel?: string | null
@@ -275,6 +278,9 @@ function useCurrentUserSource(): UserContextValue {
               orgRole: currentUserObj.orgRole,
               orgCode: currentUserObj.orgCode,
               segment: currentUserObj.segment,
+              zone: currentUserObj.zone,
+              displaySegment: currentUserObj.displaySegment,
+              interimSegments: currentUserObj.interimSegments,
               seniorManagerUid: currentUserObj.seniorManagerUid,
               plan: currentUserObj.plan,
               active: currentUserObj.active,

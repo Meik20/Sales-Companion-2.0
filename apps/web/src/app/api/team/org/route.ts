@@ -281,6 +281,7 @@ export async function GET(request: NextRequest) {
                 segment: cSeg,
                 zone: cZone,
                 displaySegment: cDisplay,
+                interimSegments: Array.isArray(cData.interimSegments) ? cData.interimSegments : [],
                 isPrimary: d.id === (primarySeniorManagerUid || managerUid),
                 isCurrent: d.id === managerUid,
                 createdAt: cData.createdAt?.toDate ? cData.createdAt.toDate().toISOString() : null
@@ -305,6 +306,9 @@ export async function GET(request: NextRequest) {
       primarySeniorManagerUid,
       segment: userData.segment || null,
       segments: Array.isArray(userData.segments) ? userData.segments : (userData.segment ? [userData.segment] : []),
+      zone: userData.zone || null,
+      displaySegment: userData.displaySegment || (userData.zone && userData.segment ? `${userData.segment} (${userData.zone})` : userData.segment || null),
+      interimSegments: Array.isArray(userData.interimSegments) ? userData.interimSegments : [],
       seniorManagerUid: userData.seniorManagerUid || primarySeniorManagerUid || null,
       niu,
       isVerified,

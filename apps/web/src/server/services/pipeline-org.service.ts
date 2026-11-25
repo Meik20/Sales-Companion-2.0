@@ -1,4 +1,4 @@
-﻿// apps/web/src/server/services/pipeline-org.service.ts
+// apps/web/src/server/services/pipeline-org.service.ts
 // Service métier d'agrégation du pipeline consolidé pour le Senior Manager.
 // Protège l'invariant hiérarchique à 4 niveaux et respecte la limite de 30 éléments de Firestore 'in'.
 
@@ -130,10 +130,29 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   if (!isCallerExecutive) {
-    const ownScopeUids = filteredManagersDocs
-      .filter((d) => d.id === callerUid || d.data().seniorManagerUid === callerUid)
-      .map((d) => d.id)
-    targetManagerUids = ownScopeUids.length > 0 ? ownScopeUids : [callerUid]
+    // Si le Coordinateur observe un segment précis (titulaire ou intérimaire)
+    const isObservingInterim = callerSegment && (!matchesSegment(managersMap[callerUid]?.segment))
+    if (isObservingInterim) {
+      // Intérim : cibler les Superviseurs rattachés à ce segment d'intérim
+      const interimScopeUids = filteredManagersDocs
+        .filter((d) => {
+          const dData = d.data()
+          return (
+            d.id === callerUid ||
+            dData.seniorManagerUid === callerUid ||
+            matchesSegment(dData.segment) ||
+            matchesSegment(dData.displaySegment)
+          )
+        })
+        .map((d) => d.id)
+      targetManagerUids = interimScopeUids.length > 0 ? interimScopeUids : [callerUid]
+    } else {
+      // Titulaire : ses Superviseurs directs et lui-même
+      const ownScopeUids = filteredManagersDocs
+        .filter((d) => d.id === callerUid || d.data().seniorManagerUid === callerUid)
+        .map((d) => d.id)
+      targetManagerUids = ownScopeUids.length > 0 ? ownScopeUids : [callerUid]
+    }
   } else if (callerSegment && !filterManagerUid) {
     const isDirectionSegment =
       callerSegment.toLowerCase() === 'direction' ||
