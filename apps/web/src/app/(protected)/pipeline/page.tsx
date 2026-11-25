@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -474,7 +474,7 @@ export default function PipelinePage() {
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════════════
-           Vue SUPERVISION (Senior Manager & Direction) — Pipeline consolidé de l'organisation
+           Vue SUPERVISION (Senior Manager & Direction) – Pipeline consolidé de l'organisation
       ═══════════════════════════════════════════════════════════════ */}
       {isOrgSupervisor ? (
         <>
@@ -799,7 +799,7 @@ export default function PipelinePage() {
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════════════
-           Vue TEAM MANAGER — Pipeline de son équipe uniquement
+           Vue TEAM MANAGER – Pipeline de son équipe uniquement
       ═══════════════════════════════════════════════════════════════ */}
       {isTeamManager ? (
         <DataCard title={t('pipeline.teamView')} subtitle={t('pipeline.teamSubtitle')}>

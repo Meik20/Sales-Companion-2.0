@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
@@ -27,7 +27,7 @@ async function verifyWebhookSignature(
       return { valid: false, reason: 'CAMPAY_WEBHOOK_SECRET non configuré en production' }
     }
     console.warn(
-      '[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent — vérification ignorée (dev uniquement)'
+      '[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent – vérification ignorée (dev uniquement)'
     )
     return { valid: true }
   }

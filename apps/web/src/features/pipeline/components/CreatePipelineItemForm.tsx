@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState, useRef } from 'react'
 import { FormField } from '@/components/forms/FormField'
@@ -590,7 +590,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         </FormField>
       </div>
 
-      {/* ── 4. NOTES COMMERCIALES — champ dédié, pleine largeur ── */}
+      {/* ── 4. NOTES COMMERCIALES – champ dédié, pleine largeur ── */}
       <div
         style={{
           background: 'rgba(251,191,36,0.05)',
@@ -622,7 +622,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
               letterSpacing: 0
             }}
           >
-            — {t('pipeline.notesHint')}
+            – {t('pipeline.notesHint')}
           </span>
         </label>
         <textarea

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -26,11 +26,11 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:px-6">
-        {/* Zone logo — isolée visuellement */}
+        {/* Zone logo – isolée visuellement */}
         <Link
           href="/"
           className="flex items-center gap-2.5 group shrink-0 pr-5 sm:pr-6 border-r border-border/60"
-          aria-label="Sales Companion 2.0 — Accueil"
+          aria-label="Sales Companion 2.0 – Accueil"
         >
           <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">

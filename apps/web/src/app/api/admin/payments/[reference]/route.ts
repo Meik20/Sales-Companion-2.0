@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
@@ -88,7 +88,7 @@ export async function PATCH(
       try {
         await sendEmail({
           to: paymentData.userEmail,
-          subject: `✅ Votre compte Manager ${planLabel} est activé — Sales Companion 2.0`,
+          subject: `✅ Votre compte Manager ${planLabel} est activé – Sales Companion 2.0`,
           html: `
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1f36;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;">
               <div style="text-align:center;margin-bottom:32px;">
@@ -129,7 +129,7 @@ export async function PATCH(
       try {
         await sendEmail({
           to: paymentData.userEmail,
-          subject: `⚠️ Paiement non confirmé — Sales Companion 2.0`,
+          subject: `⚠️ Paiement non confirmé – Sales Companion 2.0`,
           html: `
             <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1f36;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;">
               <div style="text-align:center;margin-bottom:32px;">

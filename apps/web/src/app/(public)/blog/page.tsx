@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { Metadata } from 'next'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
@@ -10,12 +10,12 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Blog — Prospection Commerciale & CRM au Cameroun | Sales Companion 2.0',
+  title: 'Blog – Prospection Commerciale & CRM au Cameroun | Sales Companion 2.0',
   description:
     'Conseils, guides et stratégies pour les commerciaux et managers au Cameroun. Prospection commerciale, utilisation des données entreprises, CRM et développement des ventes.',
   alternates: { canonical: `${baseUrl}/blog` },
   openGraph: {
-    title: 'Blog Sales Companion 2.0 — Conseils Commerciaux Cameroun',
+    title: 'Blog Sales Companion 2.0 – Conseils Commerciaux Cameroun',
     description: 'Guides pratiques pour booster votre prospection commerciale au Cameroun.',
     url: `${baseUrl}/blog`,
     siteName: 'Sales Companion 2.0',

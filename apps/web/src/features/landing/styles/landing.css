@@ -1,4 +1,4 @@
-/* ─── Tokens CSS (alignés avec tokens.ts et globals.css) ──────────────── */
+﻿/* ─── Tokens CSS (alignés avec tokens.ts et globals.css) ──────────────── */
 :root {
   --g: #1b7a3e;
   --gm: #2ea05a;
@@ -9,7 +9,7 @@
   --gold: #f5a623;
   --goldd: #c8841a;
   --goldl: rgba(245, 166, 35, 0.15);
-  /* Base bleue nuit — plus profonde et riche que le noir pur */
+  /* Base bleue nuit – plus profonde et riche que le noir pur */
   --dark: #0a0f1a;
   /* Surfaces transparentes (effet verre dépoli) */
   --dark2: rgba(255, 255, 255, 0.03);
@@ -364,7 +364,7 @@ button {
   font-style: normal;
 }
 .nav-links {
-  display: none; /* Hidden by default — shown via hamburger */
+  display: none; /* Hidden by default – shown via hamburger */
   align-items: center;
   gap: 4px;
   list-style: none;
@@ -1337,7 +1337,7 @@ button {
   align-items: center;
   gap: 16px;
 }
-/* .nav-links hidden by default — see base rule above */
+/* .nav-links hidden by default – see base rule above */
 
 /* Desktop dropdown when menu is open */
 @media (min-width: 769px) {

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useTeamMembers, TeamMember } from '../hooks/useTeamMembers'
 import { SectionCard } from './SectionCard'
@@ -292,7 +292,7 @@ function MemberCard({ member }: { member: TeamMember }) {
         </div>
       </div>
 
-      {/* Quota journalier — barre élargie et toujours visible */}
+      {/* Quota journalier – barre élargie et toujours visible */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span

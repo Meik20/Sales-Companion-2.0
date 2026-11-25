@@ -59,6 +59,20 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // Seul le Coordinateur principal (SM1) peut modifier les informations de gouvernance (segment)
+    const orgSnap = await adminDb.collection('organisations').doc(orgCode).get()
+    const primarySmUid = orgSnap.exists ? orgSnap.data()?.seniorManagerUid : null
+    const isInvitedSm =
+      callerData.isPrimarySeniorManager === false ||
+      Boolean(callerData.invitedByUid) ||
+      (Boolean(primarySmUid) && primarySmUid !== callerUid)
+    if (isInvitedSm) {
+      return NextResponse.json(
+        { message: 'Un Coordinateur invité ne peut pas modifier les informations de gouvernance.' },
+        { status: 403 }
+      )
+    }
+
     // ── 3. Validation du corps de requête ────────────────────────────────────
     const body = await request.json().catch(() => null)
     if (!body) {
@@ -88,7 +102,7 @@ export async function PATCH(request: NextRequest) {
     if (oldSegment.toLowerCase() === newSegmentTrimmed.toLowerCase()) {
       return NextResponse.json({
         success: true,
-        message: 'Le nom du segment est identique — aucune modification effectuée.',
+        message: 'Le nom du segment est identique – aucune modification effectuée.',
         updatedCount: { users: 0, pipeline: 0 }
       })
     }

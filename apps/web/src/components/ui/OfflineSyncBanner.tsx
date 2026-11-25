@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React from 'react'
 import { WifiOff, RefreshCw, CheckCircle2, Cloud, AlertCircle } from 'lucide-react'
@@ -53,7 +53,7 @@ export function OfflineSyncBanner() {
         >
           <WifiOff size={15} style={{ flexShrink: 0 }} />
           <span>
-            {isEn ? 'Offline Mode' : 'Mode Hors-Ligne'} —{' '}
+            {isEn ? 'Offline Mode' : 'Mode Hors-Ligne'} –{' '}
             {isEn
               ? 'Field actions saved locally'
               : 'Vos saisies terrain sont conservées localement'}

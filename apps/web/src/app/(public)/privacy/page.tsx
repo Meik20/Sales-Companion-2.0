@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { Metadata } from 'next'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css'
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     'Politique de confidentialité de Sales Companion 2.0 : collecte, traitement et protection de vos données personnelles conformément à la réglementation en vigueur au Cameroun.',
   alternates: { canonical: `${baseUrl}/privacy` },
   openGraph: {
-    title: 'Politique de Confidentialité — Sales Companion 2.0',
+    title: 'Politique de Confidentialité – Sales Companion 2.0',
     description:
       'Comment Sales Companion 2.0 collecte, utilise et protège vos données personnelles.',
     url: `${baseUrl}/privacy`,
@@ -66,7 +66,7 @@ const SECTIONS = [
     title: '6. Partage des données',
     content: `Nous ne vendons jamais vos données personnelles à des tiers. Vos données peuvent être partagées avec :`,
     bullets: [
-      'Google Firebase (hébergement, authentification, base de données) — infrastructure cloud sécurisée.',
+      'Google Firebase (hébergement, authentification, base de données) – infrastructure cloud sécurisée.',
       'Notre prestataire de paiement pour le traitement des transactions.',
       'Les autorités compétentes sur demande légale expresse.'
     ]

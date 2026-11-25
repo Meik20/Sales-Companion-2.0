@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { sendEmail } from '@/utils/email'
 import { PLAN_LIMITS } from '@sales-companion/shared'
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       if (email) {
         const emailResult = await sendEmail({
           to: email.trim(),
-          subject: `Sales Companion 2.0 — Invitation de ${company}`,
+          subject: `Sales Companion 2.0 – Invitation de ${company}`,
           html: emailHtml
         }).catch((err) => {
           console.error('[team/accesses] Failed to send activation email:', err)

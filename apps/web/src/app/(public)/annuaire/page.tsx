@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+﻿import { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
@@ -10,7 +10,7 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Répertoire & Workspace',
+  title: 'Base de Données Entreprises Cameroun – 50 000+ Sociétés | Répertoire & Workspace',
   description:
     'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées (RCCM/NIU) à Douala, Yaoundé, Bafoussam et dans toute la CEMAC. Filtrez par secteur et exportez vos listes de prospection commerciale.',
   keywords: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: `${baseUrl}/annuaire` },
   openGraph: {
-    title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Workspace Commercial',
+    title: 'Base de Données Entreprises Cameroun – 50 000+ Sociétés | Workspace Commercial',
     description:
       '50 000+ entreprises camerounaises vérifiées. Filtrez par ville et secteur. La référence pour la prospection commerciale au Cameroun.',
     url: `${baseUrl}/annuaire`,
@@ -234,7 +234,7 @@ export default async function AnnuaireHub() {
             notre base de données est{' '}
             <strong className="text-foreground">mise à jour en continu</strong>. Chaque fiche
             entreprise inclut le numéro RCCM, le NIU (Numéro d&apos;Identifiant Unique), le secteur
-            d&apos;activité, la localisation et — pour les abonnés — les contacts directs des
+            d&apos;activité, la localisation et – pour les abonnés – les contacts directs des
             dirigeants.
           </p>
           <p>

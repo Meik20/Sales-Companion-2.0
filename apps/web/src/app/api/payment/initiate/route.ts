@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { campayCollect } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       amount: String(serverAmount),
       currency: 'XAF',
       from: phone,
-      description: `Sales Companion 2.0 — Abonnement ${planInfo.label}`,
+      description: `Sales Companion 2.0 – Abonnement ${planInfo.label}`,
       external_reference
     })
 

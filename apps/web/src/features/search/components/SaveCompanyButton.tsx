@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -45,7 +45,7 @@ export function SaveCompanyButton({ company, iconOnly = false }: Props) {
         await addDoc(collection(firestore, 'saved_companies'), {
           userId: user.uid,
           companyId: company.id,
-          raisonSociale: company.raisonSociale ?? '—',
+          raisonSociale: company.raisonSociale ?? 'N/D',
           sector: company.sector ?? null,
           region: company.region ?? null,
           city: company.city ?? null,
@@ -70,7 +70,7 @@ export function SaveCompanyButton({ company, iconOnly = false }: Props) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           companyId: company.id,
-          raisonSociale: company.raisonSociale ?? '—',
+          raisonSociale: company.raisonSociale ?? 'N/D',
           sector: company.sector ?? null,
           region: company.region ?? null,
           city: company.city ?? null,
@@ -92,7 +92,7 @@ export function SaveCompanyButton({ company, iconOnly = false }: Props) {
         await addDoc(collection(firestore, 'saved_companies'), {
           userId: user.uid,
           companyId: company.id,
-          raisonSociale: company.raisonSociale ?? '—',
+          raisonSociale: company.raisonSociale ?? 'N/D',
           sector: company.sector ?? null,
           region: company.region ?? null,
           city: company.city ?? null,

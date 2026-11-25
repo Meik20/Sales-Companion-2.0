@@ -1,4 +1,4 @@
-/**
+﻿/**
  * exportTeamDashboardPdf.ts
  * Utilitaire d'exportation PDF exécutive du tableau de bord d'équipe (Team Manager).
  * Génère une maquette imprimable vectorielle haute fidélité (A4 portrait) conforme à la charte officielle.
@@ -252,7 +252,7 @@ export function exportTeamDashboardPdf({
     <div class="card">
       <div class="card-label">${isEn ? 'Volume Target (Closed deals)' : 'Objectif Volume (Affaires conclues)'}</div>
       <div style="display: flex; justify-content: space-between; align-items: baseline;">
-        <span class="card-value">${realVol} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVol != null ? targetVol : '—'}</span></span>
+        <span class="card-value">${realVol} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVol != null ? targetVol : 'N/D'}</span></span>
         <span class="badge ${volRate != null ? (volRate >= 100 ? 'badge-success' : volRate >= 70 ? 'badge-warning' : 'badge-danger') : 'badge-neutral'}">
           ${volRate != null ? `${volRate}% ${isEn ? 'achieved' : 'atteint'}` : (isEn ? 'Not defined' : 'Non défini')}
         </span>
@@ -265,7 +265,7 @@ export function exportTeamDashboardPdf({
     <div class="card">
       <div class="card-label">${isEn ? 'Value Target (Closed Revenue)' : "Objectif Valeur (Chiffre d'Affaires)"}</div>
       <div style="display: flex; justify-content: space-between; align-items: baseline;">
-        <span class="card-value">${formatCompactAmount(realVal, currency)} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVal != null ? formatCompactAmount(targetVal, currency) : '—'}</span></span>
+        <span class="card-value">${formatCompactAmount(realVal, currency)} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVal != null ? formatCompactAmount(targetVal, currency) : 'N/D'}</span></span>
         <span class="badge ${valRate != null ? (valRate >= 100 ? 'badge-success' : valRate >= 70 ? 'badge-warning' : 'badge-danger') : 'badge-neutral'}">
           ${valRate != null ? `${valRate}% ${isEn ? 'achieved' : 'atteint'}` : (isEn ? 'Not defined' : 'Non défini')}
         </span>
@@ -337,8 +337,8 @@ export function exportTeamDashboardPdf({
           <td style="text-align: center; font-weight: 700; color: #10b981;">${m.conclue}</td>
           <td style="text-align: center;">${m.conversionRate}%</td>
           <td style="text-align: right; font-weight: 700;">${formatCompactAmount(m.revenue || 0, currency)}</td>
-          <td style="text-align: right;">${m.targetVolume != null ? `${m.targetVolume} (${m.volumeAttainmentRate ?? 0}%)` : '—'}</td>
-          <td style="text-align: right;">${m.targetValue != null ? `${formatCompactAmount(m.targetValue, currency)} (${m.valueAttainmentRate ?? 0}%)` : '—'}</td>
+          <td style="text-align: right;">${m.targetVolume != null ? `${m.targetVolume} (${m.volumeAttainmentRate ?? 0}%)` : 'N/D'}</td>
+          <td style="text-align: right;">${m.targetValue != null ? `${formatCompactAmount(m.targetValue, currency)} (${m.valueAttainmentRate ?? 0}%)` : 'N/D'}</td>
         </tr>`
               )
               .join('')
@@ -350,8 +350,8 @@ export function exportTeamDashboardPdf({
         <td style="text-align: center; color: #10b981;">${data.totalConclue || 0}</td>
         <td style="text-align: center;">${data.overallConversionRate || 0}%</td>
         <td style="text-align: right;">${formatCompactAmount(data.totalRevenue || 0, currency)}</td>
-        <td style="text-align: right;">${targetVol != null ? `${targetVol} (${volRate ?? 0}%)` : '—'}</td>
-        <td style="text-align: right;">${targetVal != null ? `${formatCompactAmount(targetVal, currency)} (${valRate ?? 0}%)` : '—'}</td>
+        <td style="text-align: right;">${targetVol != null ? `${targetVol} (${volRate ?? 0}%)` : 'N/D'}</td>
+        <td style="text-align: right;">${targetVal != null ? `${formatCompactAmount(targetVal, currency)} (${valRate ?? 0}%)` : 'N/D'}</td>
       </tr>
     </tbody>
   </table>

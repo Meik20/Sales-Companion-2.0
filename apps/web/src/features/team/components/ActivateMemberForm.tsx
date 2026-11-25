@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -203,7 +203,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         )}
       </div>
 
-      {/* Email — OBLIGATOIRE et VERROUILLÉ à l'adresse professionnelle */}
+      {/* Email – OBLIGATOIRE et VERROUILLÉ à l'adresse professionnelle */}
       <FormField
         label={t('auth.yourEmailAddress')}
         required

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -385,7 +385,7 @@ function SearchContent() {
 
   return (
     <AppShell>
-      {/* Barre de recherche — fixe sur Desktop (sticky), défile normalement sur Mobile */}
+      {/* Barre de recherche – fixe sur Desktop (sticky), défile normalement sur Mobile */}
       <div className="search-filters-sticky-wrap">
         <SearchFiltersForm
           initialValues={filters}
@@ -603,7 +603,7 @@ function SearchContent() {
                   boxSizing: 'border-box'
                 }}
               >
-                {/* Illustration Desktop (Premium) — réduite de 10% */}
+                {/* Illustration Desktop (Premium) – réduite de 10% */}
                 <div
                   className="desktop-illustration"
                   style={{
@@ -650,7 +650,7 @@ function SearchContent() {
 
                   <img
                     src="/illustrations/search-prospects.png?v=20260919b"
-                    alt={`Prospection commerciale ${countryIn} — Trouvez vos clients avec Sales Companion 2.0`}
+                    alt={`Prospection commerciale ${countryIn} – Trouvez vos clients avec Sales Companion 2.0`}
                     className="illustration-refined"
                     style={{
                       width: '100%',
@@ -1067,7 +1067,7 @@ function SearchContent() {
                       )}
                     </div>
 
-                    {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
+                    {/* Chips suggestions – visibles uniquement AVANT que la conversation démarre */}
                     {!conversationStarted && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {(() => {

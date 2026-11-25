@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -162,8 +162,8 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
                         className="flex items-center gap-1 text-[10px] text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded"
                         title={
                           lang === 'en'
-                            ? 'Reserved for Enterprise plan — click to unlock'
-                            : 'Réservé au plan Enterprise — cliquez pour débloquer'
+                            ? 'Reserved for Enterprise plan – click to unlock'
+                            : 'Réservé au plan Enterprise – cliquez pour débloquer'
                         }
                       >
                         <Lock size={11} className="text-violet-500/80 shrink-0" />

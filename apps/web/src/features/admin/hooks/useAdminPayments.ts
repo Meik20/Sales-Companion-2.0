@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -43,8 +43,8 @@ export function useAdminPayments() {
       return response.json() as Promise<AdminPaymentsResponse>
     },
     enabled: !!user?.uid,
-    staleTime: 5 * 60 * 1000, // 5 min de cache — réutilise les données entre navigations
-    refetchInterval: 5 * 60 * 1000, // Toutes les 5 min — évite l'épuisement du quota Firestore
+    staleTime: 5 * 60 * 1000, // 5 min de cache – réutilise les données entre navigations
+    refetchInterval: 5 * 60 * 1000, // Toutes les 5 min – évite l'épuisement du quota Firestore
     refetchOnWindowFocus: false
   })
 }

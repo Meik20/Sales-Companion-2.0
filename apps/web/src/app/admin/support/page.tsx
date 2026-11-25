@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -834,7 +834,7 @@ export default function AdminSupportPage() {
                           gap: 4
                         }}
                       >
-                        <span>{t.subject ?? '—'}</span>
+                        <span>{t.subject ?? 'N/D'}</span>
                         {t.type === 'corporate_domain_request' && (
                           <span
                             style={{
@@ -911,7 +911,7 @@ export default function AdminSupportPage() {
                       }}
                     >
                       <User size={11} style={{ opacity: 0.7 }} />
-                      <span>{t.userName || t.userEmail || '—'}</span>
+                      <span>{t.userName || t.userEmail || 'N/D'}</span>
                       {t.companyName && (
                         <span
                           style={{
@@ -1069,7 +1069,7 @@ export default function AdminSupportPage() {
                       onClick={() => navigator.clipboard.writeText(selected.userId ?? '')}
                       title="Cliquer pour copier l'ID"
                     >
-                      {selected.userId ?? '—'}
+                      {selected.userId ?? 'N/D'}
                     </div>
                   </div>
                   {/* Nom */}
@@ -1088,7 +1088,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}
                     >
-                      {selected.userName || '—'}
+                      {selected.userName || 'N/D'}
                     </div>
                   </div>
                   {/* Email */}
@@ -1105,7 +1105,7 @@ export default function AdminSupportPage() {
                       Email
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {selected.userEmail || '—'}
+                      {selected.userEmail || 'N/D'}
                     </div>
                   </div>
                   {/* Entreprise */}

@@ -1,5 +1,5 @@
-/* ════════════════════════════════════════════════════════════════════
-   THEME : Firebase Console Design System — Navy + Amber
+﻿/* ════════════════════════════════════════════════════════════════════
+   THEME : Firebase Console Design System – Navy + Amber
    World-class elevation : layered shadows · elevation tokens · glow
    Activé par : <html data-design="firebase">
    Compatible avec les modes clair et sombre (.dark)
@@ -22,17 +22,17 @@
   --fb-navy-700: #0d47a1;
 
   /* ── Easing Curves Premium (Material Motion + Spring) ───────────── */
-  /* Standard — entrées/sorties UI fluides */
+  /* Standard – entrées/sorties UI fluides */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  /* Emphasized — transitions importantes, modals */
+  /* Emphasized – transitions importantes, modals */
   --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
-  /* Decelerate — éléments entrant dans la vue */
+  /* Decelerate – éléments entrant dans la vue */
   --ease-decelerate: cubic-bezier(0, 0, 0, 1);
-  /* Accelerate — éléments sortant de la vue */
+  /* Accelerate – éléments sortant de la vue */
   --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
-  /* Spring — micro-interactions, hover lifts */
+  /* Spring – micro-interactions, hover lifts */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Smooth — transitions générales */
+  /* Smooth – transitions générales */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Durées de Transition ───────────────────────────────────────── */
@@ -43,7 +43,7 @@
   --duration-slow: 500ms;
   --duration-deliberate: 700ms;
 
-  /* ── Typographie — Optical Sizing & Scale ───────────────────────── */
+  /* ── Typographie – Optical Sizing & Scale ───────────────────────── */
   --font-size-2xs: 0.6875rem;   /* 11px */
   --font-size-xs: 0.75rem;      /* 12px */
   --font-size-sm: 0.8125rem;    /* 13px */
@@ -138,25 +138,25 @@
   --cr-active-background-color: rgba(0, 0, 0, 0.1) !important;
 
   /* ── Shadow System World-Class (Ambient + Key Light layered) ────── */
-  /* Elevation 0 — flat, no shadow (focused states) */
+  /* Elevation 0 – flat, no shadow (focused states) */
   --shadow-elevation-0: none;
-  /* Elevation 1 — carte au repos, subtle lift */
+  /* Elevation 1 – carte au repos, subtle lift */
   --shadow-elevation-1:
     0 1px 2px rgba(60, 64, 67, 0.06),
     0 1px 3px 1px rgba(60, 64, 67, 0.07);
-  /* Elevation 2 — carte hover, dropdowns */
+  /* Elevation 2 – carte hover, dropdowns */
   --shadow-elevation-2:
     0 1px 3px rgba(60, 64, 67, 0.08),
     0 4px 8px 3px rgba(60, 64, 67, 0.09);
-  /* Elevation 3 — sidebar, nav flottante */
+  /* Elevation 3 – sidebar, nav flottante */
   --shadow-elevation-3:
     0 1px 4px rgba(60, 64, 67, 0.1),
     0 8px 16px 4px rgba(60, 64, 67, 0.1);
-  /* Elevation 4 — modal, dialog */
+  /* Elevation 4 – modal, dialog */
   --shadow-elevation-4:
     0 2px 6px rgba(60, 64, 67, 0.12),
     0 12px 24px 6px rgba(60, 64, 67, 0.12);
-  /* Elevation 5 — bottom sheet, drawer */
+  /* Elevation 5 – bottom sheet, drawer */
   --shadow-elevation-5:
     0 4px 12px rgba(60, 64, 67, 0.15),
     0 20px 40px 8px rgba(60, 64, 67, 0.15);
@@ -211,10 +211,10 @@
 
 /* ── Firebase Dark Mode ──────────────────────────────────────────── */
 [data-design='firebase'].dark {
-  /* ── Surfaces — Navy par élévation (jamais noir pur) ────────────── */
-  --bg: #202124 !important;   /* Google dark base — Gris anthracite */
-  --bg2: #2d2e31 !important;  /* Surface élevée — cartes, sidebar */
-  --bg3: #35363a !important;  /* Surface secondaire — dropdowns, tags */
+  /* ── Surfaces – Navy par élévation (jamais noir pur) ────────────── */
+  --bg: #202124 !important;   /* Google dark base – Gris anthracite */
+  --bg2: #2d2e31 !important;  /* Surface élevée – cartes, sidebar */
+  --bg3: #35363a !important;  /* Surface secondaire – dropdowns, tags */
   --bg4: #3c3f47 !important;  /* Bordures et hovers */
 
   /* ── Texte ──────────────────────────────────────────────────────── */
@@ -252,23 +252,23 @@
   /* ── Shadow System Dark World-Class ─────────────────────────────── */
   /* Shadows sombres : noir pur interdit, teinte navy chaude */
   --shadow-elevation-0: none;
-  /* Elevation 1 — carte au repos */
+  /* Elevation 1 – carte au repos */
   --shadow-elevation-1:
     0 1px 2px rgba(0, 0, 0, 0.3),
     0 1px 3px 1px rgba(0, 0, 0, 0.2);
-  /* Elevation 2 — carte hover, dropdowns */
+  /* Elevation 2 – carte hover, dropdowns */
   --shadow-elevation-2:
     0 1px 3px rgba(0, 0, 0, 0.35),
     0 4px 8px 3px rgba(0, 0, 0, 0.25);
-  /* Elevation 3 — sidebar, nav flottante */
+  /* Elevation 3 – sidebar, nav flottante */
   --shadow-elevation-3:
     0 1px 4px rgba(0, 0, 0, 0.4),
     0 8px 16px 4px rgba(0, 0, 0, 0.3);
-  /* Elevation 4 — modal, dialog */
+  /* Elevation 4 – modal, dialog */
   --shadow-elevation-4:
     0 2px 6px rgba(0, 0, 0, 0.45),
     0 12px 24px 6px rgba(0, 0, 0, 0.35);
-  /* Elevation 5 — drawer, bottom sheet */
+  /* Elevation 5 – drawer, bottom sheet */
   --shadow-elevation-5:
     0 4px 12px rgba(0, 0, 0, 0.5),
     0 20px 40px 8px rgba(0, 0, 0, 0.4);

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -53,7 +53,7 @@ export default function AdminConfigPage() {
     {
       plan: 'Gratuit',
       daily: `${PLAN_LIMITS.free} / mois`,
-      price: '—',
+      price: 'N/D',
       target: t('admin.targetFree') || 'Essai / découverte'
     },
     {
@@ -91,7 +91,7 @@ export default function AdminConfigPage() {
         body: JSON.stringify({ key: 'groq_api_key', value: apiKey.trim() })
       })
       if (res.ok) {
-        setApiMsg({ type: 'ok', text: 'Clé API enregistrée — tableau de bord mis à jour' })
+        setApiMsg({ type: 'ok', text: 'Clé API enregistrée – tableau de bord mis à jour' })
         setApiKey('')
         setHasGroqKey(true)
       } else {
@@ -147,7 +147,7 @@ export default function AdminConfigPage() {
       if (res.ok) {
         setSyncMsg({
           type: 'ok',
-          text: `✅ ${data.managersProcessed} managers synchronisés — ${data.totalUsersUpdated} utilisateurs, ${data.totalAccessesUpdated} accès mis à jour`
+          text: `✅ ${data.managersProcessed} managers synchronisés – ${data.totalUsersUpdated} utilisateurs, ${data.totalAccessesUpdated} accès mis à jour`
         })
       } else {
         setSyncMsg({ type: 'err', text: data.error ?? 'Erreur serveur' })

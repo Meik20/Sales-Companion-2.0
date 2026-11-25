@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+﻿import { useState, useRef } from 'react'
 import { DataCard, Badge, ConfirmDialog } from '@/components/ui/index'
 import { EmptyState, LoadingState } from '@/components/feedback/index'
 import { Input } from '@/components/ui/Input'
@@ -811,7 +811,7 @@ export function TeamAccessManager() {
                           )}
                         </>
                       ) : null}
-                      {/* Revoke — only for non-revoked */}
+                      {/* Revoke – only for non-revoked */}
                       {displayStatus !== 'revoked' && (
                         <button
                           type="button"
@@ -822,7 +822,7 @@ export function TeamAccessManager() {
                           <Ban size={13} /> {t('team.revoke')}
                         </button>
                       )}
-                      {/* Delete — always available */}
+                      {/* Delete – always available */}
                       <button
                         title={t('team.deletePermanently')}
                         onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : acc.id)}
@@ -844,7 +844,7 @@ export function TeamAccessManager() {
                     </div>
                   </div>
 
-                  {/* Confirmation panel — slides in below the row */}
+                  {/* Confirmation panel – slides in below the row */}
                   {isConfirmingDelete && (
                     <div
                       style={{

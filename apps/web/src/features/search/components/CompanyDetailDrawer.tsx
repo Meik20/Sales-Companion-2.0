@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect } from 'react'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
@@ -131,7 +131,7 @@ export function CompanyDetailDrawer({ company, onClose }: Props) {
         aria-hidden="true"
       />
 
-      {/* Drawer 480px — STRICTEMENT 100% OPAQUE (Règle 8 AGENTS.md) */}
+      {/* Drawer 480px – STRICTEMENT 100% OPAQUE (Règle 8 AGENTS.md) */}
       <div
         role="dialog"
         aria-modal="true"
@@ -225,7 +225,7 @@ export function CompanyDetailDrawer({ company, onClose }: Props) {
           )}
         </div>
 
-        {/* Drawer Body — scrollable */}
+        {/* Drawer Body – scrollable */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Section: Contacts */}
           <div>

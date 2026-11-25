@@ -325,9 +325,16 @@ export function OrgGovernanceTab() {
   }
 
   const isSeniorManager = user?.orgRole === 'senior_manager'
+  const isExecutive = user?.orgRole === 'executive'
   const isPrimarySeniorManager =
-    Boolean(orgData?.isPrimarySeniorManager) ||
-    (!orgData?.seniorManagerUid ? isSeniorManager : orgData?.seniorManagerUid === user?.uid)
+    orgData?.isPrimarySeniorManager !== undefined
+      ? Boolean(orgData.isPrimarySeniorManager)
+      : isSeniorManager &&
+        (user as any)?.isPrimarySeniorManager !== false &&
+        !Boolean((user as any)?.invitedByUid)
+  // Seul le Coordinateur principal (SM1) peut modifier les informations de gouvernance.
+  // Un Manager exécutif ou un Coordinateur invité est strictement en lecture seule sur ces champs.
+  const canEditGovernance = isPrimarySeniorManager && !isExecutive
 
   const fetchSeniorProspects = async () => {
     if (!user || user.orgRole !== 'senior_manager') return
@@ -452,7 +459,7 @@ export function OrgGovernanceTab() {
       setTimeout(() => setCopiedExecutiveInvite(false), 2500)
       const labelDisplay = executiveCustomLabel.trim() || 'Direction Générale'
       const scopeDisplay = isExecutiveAllSegments
-        ? ' (Supervision Globale — Tous les segments)'
+        ? ' (Supervision Globale – Tous les segments)'
         : chosenSegments.length === 1
           ? ` (Segment : ${chosenSegments[0]})`
           : ` (Segments : ${chosenSegments.join(', ')})`
@@ -748,21 +755,23 @@ export function OrgGovernanceTab() {
                   <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
                     <Tag size={13} className="text-primary shrink-0" /> {t('team.orgGovernance.segmentLabel')}
                   </div>
-                  {!editingSegment ? (
+                  {!editingSegment || !canEditGovernance ? (
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-[16px] font-bold text-foreground">
                         {orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault')}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSegmentInput(orgData?.segment || user?.segment || '')
-                          setEditingSegment(true)
-                        }}
-                        className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
-                      >
-                        {t('team.orgGovernance.editSegment')}
-                      </button>
+                      {canEditGovernance && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSegmentInput(orgData?.segment || user?.segment || '')
+                            setEditingSegment(true)
+                          }}
+                          className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
+                        >
+                          {t('team.orgGovernance.editSegment')}
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="mt-2 flex items-center gap-2">
@@ -918,7 +927,7 @@ export function OrgGovernanceTab() {
                         <p className="mt-1.5 text-[11px] text-violet-700 dark:text-violet-300 font-medium">
                           {lang === 'en' ? 'Coordinator label:' : 'Libellé Coordinateur :'}{' '}
                           <span className="font-bold">
-                            {smSegmentInput.trim().toUpperCase() || '—'} ({smZoneInput.trim() || '—'})
+                            {smSegmentInput.trim().toUpperCase() || 'N/D'} ({smZoneInput.trim() || 'N/D'})
                           </span>
                         </p>
                       )}
@@ -1086,7 +1095,7 @@ export function OrgGovernanceTab() {
                         ? `Lien ${executiveCustomLabel.trim() || 'Exécutif'} copié !`
                         : generatingInvite === 'executive'
                           ? t('team.orgGovernance.generating')
-                          : `Générer le lien — ${executiveCustomLabel.trim() || 'Responsable Exécutif'}`}
+                          : `Générer le lien – ${executiveCustomLabel.trim() || 'Responsable Exécutif'}`}
                     </button>
 
                     {/* Gestion des segments des Responsables Exécutifs existants (SM1 uniquement) */}
@@ -1233,26 +1242,32 @@ export function OrgGovernanceTab() {
                 />
               </h4>
 
-              <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
-                <div className="flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Ex: M051212345678A"
-                    value={niuInput}
-                    onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
-                  />
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    loading={niuLoading}
-                    style={{ flexShrink: 0 }}
-                  >
-                    {t('team.orgGovernance.niuSave')}
-                  </Button>
+              {canEditGovernance ? (
+                <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Ex: M051212345678A"
+                      value={niuInput}
+                      onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
+                    />
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={niuLoading}
+                      style={{ flexShrink: 0 }}
+                    >
+                      {t('team.orgGovernance.niuSave')}
+                    </Button>
+                  </div>
+                  {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
+                  {niuSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{niuSuccess}</div>}
+                </form>
+              ) : (
+                <div className="text-[13px] font-medium text-foreground">
+                  {orgData?.niu || user?.niu || (lang === 'en' ? 'Not provided' : 'Non renseigné')}
                 </div>
-                {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
-                {niuSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{niuSuccess}</div>}
-              </form>
+              )}
             </div>
           </div>
         </DataCard>
@@ -1464,7 +1479,7 @@ export function OrgGovernanceTab() {
                                   ? new Date(p.createdAt).toLocaleDateString(
                                     t('team.orgGovernance.statusAll') === 'All' ? 'en-US' : 'fr-FR'
                                   )
-                                  : '—'}
+                                  : 'N/D'}
                               </td>
                             </tr>
                           )

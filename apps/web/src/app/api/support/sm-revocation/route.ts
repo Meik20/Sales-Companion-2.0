@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { createUserNotification } from '@/lib/user-notifications'
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
       executiveContactEmail: trimmedExecEmail,
       executiveContactPhone: typeof executiveContactPhone === 'string' ? executiveContactPhone.trim() : null,
       proposedSuccessorUid: typeof proposedSuccessorUid === 'string' ? proposedSuccessorUid.trim() : null,
-      subject: `[GOUVERNANCE - RÉVOCATION SM] ${companyName} — Demande concernant ${targetName} (${targetSegment})`,
+      subject: `[GOUVERNANCE - RÉVOCATION SM] ${companyName} – Demande concernant ${targetName} (${targetSegment})`,
       lastMessage: `Demande de révocation pour le Senior Manager ${targetName} (${targetSegment}). Motif : ${trimmedReason}`,
       unreadByAdmin: true,
       unreadByUser: false,

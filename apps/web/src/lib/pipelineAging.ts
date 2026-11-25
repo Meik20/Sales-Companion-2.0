@@ -1,4 +1,4 @@
-/**
+﻿/**
  * pipelineAging.ts
  * Utilitaire de suivi de vélocité commerciale et d'alerte de durée dans le pipeline.
  * Analyse le parcours de vente et alerte selon le temps passé dans chaque étape.
@@ -82,7 +82,7 @@ export function getPipelineAging(
         month: 'short',
         year: 'numeric'
       })
-    : '—'
+    : 'N/D'
 
   // Calcul du nombre de jours écoulés
   const now = Date.now()

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -51,8 +51,8 @@ export function AddToPipelineButton({ company }: Props) {
     const pipelineData = {
       userId: user.uid,
       companyId: company.id,
-      companyName: company.raisonSociale ?? '—',
-      name: company.raisonSociale ?? '—',
+      companyName: company.raisonSociale ?? 'N/D',
+      name: company.raisonSociale ?? 'N/D',
       companySector: company.sector ?? null,
       companyCity: company.city ?? company.region ?? null,
       companyCountry: targetCountry,
@@ -80,8 +80,8 @@ export function AddToPipelineButton({ company }: Props) {
           segment: user.segment ?? null,
           seniorManagerUid:
             user.seniorManagerUid ?? (user.orgRole === 'senior_manager' ? user.uid : null),
-          name: company.raisonSociale ?? '—',
-          companyName: company.raisonSociale ?? '—',
+          name: company.raisonSociale ?? 'N/D',
+          companyName: company.raisonSociale ?? 'N/D',
           companyId: company.id,
           phone: company.telephone ?? null,
           email: company.email ?? null,
@@ -123,7 +123,7 @@ export function AddToPipelineButton({ company }: Props) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           companyId: company.id,
-          companyName: company.raisonSociale ?? '—',
+          companyName: company.raisonSociale ?? 'N/D',
           companySector: company.sector ?? null,
           companyCity: company.city ?? company.region ?? null,
           companyCountry: targetCountry,

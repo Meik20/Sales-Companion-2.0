@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { Metadata } from 'next'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css'
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Conditions Générales d'Utilisation de Sales Companion 2.0 : droits, obligations, abonnements et règles d'utilisation du Workspace commercial au Cameroun.",
   alternates: { canonical: `${baseUrl}/terms` },
   openGraph: {
-    title: "CGU — Conditions Générales d'Utilisation — Sales Companion 2.0",
+    title: "CGU – Conditions Générales d'Utilisation – Sales Companion 2.0",
     description:
       "Droits, obligations et règles d'utilisation de la plateforme Sales Companion 2.0.",
     url: `${baseUrl}/terms`,

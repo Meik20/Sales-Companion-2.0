@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import type { UserDoc, UserPlan } from '@sales-companion/shared'
@@ -61,7 +61,7 @@ const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
 }
 
 function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return 'N/D'
   try {
     return new Date(iso).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -69,7 +69,7 @@ function formatDate(iso: string | null | undefined): string {
       year: 'numeric'
     })
   } catch {
-    return '—'
+    return 'N/D'
   }
 }
 
@@ -185,7 +185,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         textOverflow: 'ellipsis'
                       }}
                     >
-                      {user.name || '—'}
+                      {user.name || 'N/D'}
                     </span>
                     <span
                       style={{
@@ -196,7 +196,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         textOverflow: 'ellipsis'
                       }}
                     >
-                      {user.email || '—'}
+                      {user.email || 'N/D'}
                     </span>
                   </div>
                 </div>
@@ -441,7 +441,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   if (sub.level === 'none') {
                     return (
                       <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
-                        —
+                        –
                       </span>
                     )
                   }
@@ -506,7 +506,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   fontSize: 12
                 }}
               >
-                <div>{user.region ?? '—'}</div>
+                <div>{user.region ?? 'N/D'}</div>
                 <div
                   style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}
                 >

@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+﻿import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicNav } from '@/components/landing/PublicNav'
@@ -183,7 +183,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
   const prefix = data.type === 'city' ? 'à' : 'du secteur'
-  const titleText = `Entreprises ${prefix} ${data.title} — Annuaire Cameroun`
+  const titleText = `Entreprises ${prefix} ${data.title} – Annuaire Cameroun`
   const descText = `${data.description} Accédez à plus de ${data.count} profils vérifiés avec contacts des dirigeants.`
 
   return {

@@ -1,4 +1,4 @@
-import { sendEmail } from '@/utils/email'
+﻿import { sendEmail } from '@/utils/email'
 
 export interface ProspectTransferEmailParams {
   to: string
@@ -54,7 +54,7 @@ export async function sendProspectTransferEmail(params: ProspectTransferEmailPar
 
   const plural = count > 1
   const countLabel = `${count} prospect${plural ? 's' : ''}`
-  const subject = `Sales Companion 2.0 — ${countLabel} transféré${plural ? 's' : ''} par votre Coordinateur`
+  const subject = `Sales Companion 2.0 – ${countLabel} transféré${plural ? 's' : ''} par votre Coordinateur`
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
@@ -108,7 +108,7 @@ export async function sendProspectTransferEmail(params: ProspectTransferEmailPar
       <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
 
       <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-        Sales Companion 2.0 — Notification automatique de gouvernance commerciale d'entreprise.
+        Sales Companion 2.0 – Notification automatique de gouvernance commerciale d'entreprise.
       </p>
     </div>
   `
@@ -139,7 +139,7 @@ export async function sendProspectAssignmentEmail(params: ProspectAssignmentEmai
   const ctaLink = `${appUrl}/pipeline`
   const formattedDeadline = formatDeadlineDate(deadline)
 
-  const subject = `Sales Companion 2.0 — Nouveau prospect assigné : ${companyName}`
+  const subject = `Sales Companion 2.0 – Nouveau prospect assigné : ${companyName}`
 
   const hasDetails =
     details && (details.sector || details.city || details.phone || details.email)
@@ -210,7 +210,7 @@ export async function sendProspectAssignmentEmail(params: ProspectAssignmentEmai
       <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
 
       <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-        Sales Companion 2.0 — Votre assistant de productivité commerciale.
+        Sales Companion 2.0 – Votre assistant de productivité commerciale.
       </p>
     </div>
   `

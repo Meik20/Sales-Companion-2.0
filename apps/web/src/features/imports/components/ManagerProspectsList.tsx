@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -602,7 +602,7 @@ export function ManagerProspectsList({
   }
 
   function getTmName(uid: string | null | undefined): string {
-    if (!uid) return '—'
+    if (!uid) return 'N/D'
     // 1. Recherche dans les Team Managers légitimes transmis en props
     const tm = teamManagers.find((m) => m.uid === uid)
     if (tm?.name || tm?.email) return tm.name ?? tm.email!
@@ -721,7 +721,7 @@ export function ManagerProspectsList({
   }
 
   function getMemberName(uid: string | null | undefined): string {
-    if (!uid) return '—'
+    if (!uid) return 'N/D'
     // 1. Recherche dans les membres transmis en props
     const m = members.find((m) => m.uid === uid)
     if (m?.name || m?.email) return m.name ?? m.email!
@@ -1377,7 +1377,7 @@ export function ManagerProspectsList({
                         color: 'var(--foreground, #f1f5f9)'
                       }}
                     >
-                      {p.name || '—'}
+                      {p.name || 'N/D'}
                     </td>
                     <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {p.phone ? (
@@ -1388,7 +1388,7 @@ export function ManagerProspectsList({
                           {p.phone}
                         </a>
                       ) : (
-                        '—'
+                        'N/D'
                       )}
                     </td>
                     <td
@@ -1409,14 +1409,14 @@ export function ManagerProspectsList({
                           {p.email}
                         </a>
                       ) : (
-                        '—'
+                        'N/D'
                       )}
                     </td>
                     <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {p.city || '—'}
+                      {p.city || 'N/D'}
                     </td>
                     <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {p.sector || '—'}
+                      {p.sector || 'N/D'}
                     </td>
                     <td style={{ padding: '9px 12px' }}>
                       {(() => {
@@ -1467,7 +1467,7 @@ export function ManagerProspectsList({
                             size="sm"
                           />
                         ) : (
-                          <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
+                          <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>-</span>
                         )
                       })()}
                     </td>

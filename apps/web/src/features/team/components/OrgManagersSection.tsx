@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Badge } from '@/components/ui/index'
@@ -87,10 +87,10 @@ function ManagerStatsRow({
       }}
     >
       {[
-        { label: t('pipeline.prospection'), value: stats?.prospection ?? '—', color: '#60a5fa' },
-        { label: t('pipeline.negotiation'), value: stats?.negociation ?? '—', color: '#fbbf24' },
-        { label: t('pipeline.concluded'), value: stats?.conclue ?? '—', color: '#34d399' },
-        { label: t('common.total'), value: stats?.total ?? '—', color: '#a78bfa' }
+        { label: t('pipeline.prospection'), value: stats?.prospection ?? 'N/D', color: '#60a5fa' },
+        { label: t('pipeline.negotiation'), value: stats?.negociation ?? 'N/D', color: '#fbbf24' },
+        { label: t('pipeline.concluded'), value: stats?.conclue ?? 'N/D', color: '#34d399' },
+        { label: t('common.total'), value: stats?.total ?? 'N/D', color: '#a78bfa' }
       ].map(({ label, value, color }) => (
         <div
           key={label}
@@ -289,12 +289,12 @@ function RevokeManagerModal({
             >
               {otherManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` – ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
               {user && (
                 <option value={user.uid}>
-                  {user.name || user.email || (lang === 'en' ? 'Coordinator' : 'Coordinateur')} (Moi-même — Rapatriement par intérim)
+                  {user.name || user.email || (lang === 'en' ? 'Coordinator' : 'Coordinateur')} (Moi-même – Rapatriement par intérim)
                 </option>
               )}
             </select>
@@ -560,7 +560,7 @@ function TransferMemberModal({
             >
               {filteredAvailableManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` – ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
             </select>
@@ -1139,7 +1139,7 @@ function RequestSmRevocationModal({
               <option value="">{t('team.orgGovernance.smRevocationSuccessorPlaceholder')}</option>
               {availableSuccessors.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` – ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
             </select>

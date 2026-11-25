@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { PublicNav } from '@/components/landing/PublicNav'
@@ -357,27 +357,27 @@ const ARTICLES_CONTENT: Record<
         </p>
         <ol>
           <li>
-            <strong>Identification</strong> — Le prospect correspond-il à votre cible (secteur,
+            <strong>Identification</strong> – Le prospect correspond-il à votre cible (secteur,
             taille, localisation) ?
           </li>
           <li>
-            <strong>Premier contact</strong> — Visite terrain, appel ou message LinkedIn.
+            <strong>Premier contact</strong> – Visite terrain, appel ou message LinkedIn.
           </li>
           <li>
-            <strong>Qualification</strong> — A-t-il un besoin réel ? Un budget ? Un calendrier ?
+            <strong>Qualification</strong> – A-t-il un besoin réel ? Un budget ? Un calendrier ?
           </li>
           <li>
-            <strong>Présentation</strong> — Démonstration ou rendez-vous commercial formel.
+            <strong>Présentation</strong> – Démonstration ou rendez-vous commercial formel.
           </li>
           <li>
-            <strong>Négociation</strong> — Adaptation de l'offre au contexte local (prix, conditions
+            <strong>Négociation</strong> – Adaptation de l'offre au contexte local (prix, conditions
             de paiement).
           </li>
           <li>
-            <strong>Closing</strong> — Signature ou bon de commande.
+            <strong>Closing</strong> – Signature ou bon de commande.
           </li>
           <li>
-            <strong>Fidélisation</strong> — Suivi post-vente et demande de recommandations.
+            <strong>Fidélisation</strong> – Suivi post-vente et demande de recommandations.
           </li>
         </ol>
 
@@ -390,7 +390,7 @@ const ARTICLES_CONTENT: Record<
         </p>
         <p>
           <strong>Négliger le suivi.</strong> Au Cameroun, il est rare qu'un prospect signe dès le
-          premier contact. La relance — effectuée avec tact et régularité — est souvent ce qui fait
+          premier contact. La relance – effectuée avec tact et régularité – est souvent ce qui fait
           la différence entre un deal conclu et une opportunité perdue.
         </p>
         <p>
@@ -403,7 +403,7 @@ const ARTICLES_CONTENT: Record<
           <h3>Passez à l'action dès aujourd'hui</h3>
           <p>
             Accédez à plus de 50 000 entreprises camerounaises vérifiées, filtrables par secteur,
-            ville et taille — et gérez votre pipeline directement dans Sales Companion 2.0.
+            ville et taille – et gérez votre pipeline directement dans Sales Companion 2.0.
           </p>
           <Link href="/register" className="btn btn-primary btn-lg">
             Créer un compte gratuit
@@ -893,7 +893,7 @@ const ARTICLES_CONTENT: Record<
         <h2>2. BTP et construction</h2>
         <p>
           <strong>Pourquoi c’est prioritaire :</strong> Les grands chantiers d’infrastructure se
-          multiplient à Douala — extension du port, rénovation des voiries, projets immobiliers
+          multiplient à Douala – extension du port, rénovation des voiries, projets immobiliers
           privés. Le BTP est en croissance constante.
         </p>
         <ul>
@@ -1102,7 +1102,7 @@ const ARTICLES_CONTENT: Record<
           <h3>Trouvez vos prospects dans chaque secteur</h3>
           <p>
             Sales Companion 2.0 vous permet de filtrer plus de 50 000 entreprises camerounaises par
-            secteur d’activité, quartier et taille — et de lancer vos campagnes terrain en quelques
+            secteur d’activité, quartier et taille – et de lancer vos campagnes terrain en quelques
             clics.
           </p>
           <Link href="/register" className="btn btn-primary btn-lg">
@@ -1145,7 +1145,7 @@ const ARTICLES_CONTENT: Record<
           commerciales.
         </p>
 
-        <h2>Bonanjo — Le quartier des affaires et des institutions</h2>
+        <h2>Bonanjo – Le quartier des affaires et des institutions</h2>
         <p>
           Bonanjo est le CBD (Central Business District) historique de Douala. C'est ici que sont
           établis les sièges sociaux des grandes entreprises, les banques, les ambassades et les
@@ -1175,7 +1175,7 @@ const ARTICLES_CONTENT: Record<
           (côté port), Immeuble Atrium.
         </p>
 
-        <h2>Akwa — Le centre commercial et administratif</h2>
+        <h2>Akwa – Le centre commercial et administratif</h2>
         <p>
           Akwa est le quartier le plus animé de Douala. C'est le cœur commerçant de la ville, mêlant
           commerce de détail, services, bureaux administratifs et hôtels d'affaires.
@@ -1202,7 +1202,7 @@ const ARTICLES_CONTENT: Record<
           Ahmadou Ahidjo.
         </p>
 
-        <h2>Bali — Le quartier des grossistes et du commerce en gros</h2>
+        <h2>Bali – Le quartier des grossistes et du commerce en gros</h2>
         <p>
           Bali est la zone de référence pour le négoce à grande échelle à Douala. C'est ici que
           s'approvisionnent les commerçants de toute la ville.
@@ -1228,7 +1228,7 @@ const ARTICLES_CONTENT: Record<
           <strong>Adresses clés :</strong> Marché de Bali, Rue du Marché, zones d'entrepôts.
         </p>
 
-        <h2>Bonapriso — Le quartier résidentiel haut de gamme et des professions libérales</h2>
+        <h2>Bonapriso – Le quartier résidentiel haut de gamme et des professions libérales</h2>
         <p>
           Bonapriso est le quartier le plus résidentiel et huppé de Douala, abritant de nombreuses
           professions libérales et des sièges de PME.
@@ -1254,7 +1254,7 @@ const ARTICLES_CONTENT: Record<
           <strong>Adresses clés :</strong> Avenue Laprade, Rue Coty, abords de l'American School.
         </p>
 
-        <h2>Bassa — La zone industrielle</h2>
+        <h2>Bassa – La zone industrielle</h2>
         <p>
           Bassa est la principale zone industrielle de Douala et l'une des plus importantes
           d'Afrique centrale.
@@ -1281,7 +1281,7 @@ const ARTICLES_CONTENT: Record<
           Bassa.
         </p>
 
-        <h2>Bonabéri — La rive gauche industrielle et commerciale</h2>
+        <h2>Bonabéri – La rive gauche industrielle et commerciale</h2>
         <p>
           Bonabéri est la rive gauche du Wouri, accessible par le pont, en plein développement
           industriel et commercial.
@@ -1307,7 +1307,7 @@ const ARTICLES_CONTENT: Record<
           <strong>Adresses clés :</strong> Route de Bonabéri, Zone Franche Industrielle.
         </p>
 
-        <h2>Deïdo — Le quartier populaire et artisanal</h2>
+        <h2>Deïdo – Le quartier populaire et artisanal</h2>
         <p>
           Deïdo est l'un des quartiers les plus denses de Douala, caractérisé par un artisanat
           dynamique et de nombreuses TPE.
@@ -1504,30 +1504,30 @@ const ARTICLES_CONTENT: Record<
         <h2>La stratégie hybride : la seule approche gagnante au Cameroun</h2>
         <p>
           Les meilleures équipes commerciales au Cameroun ne choisissent pas entre terrain et
-          digital — elles combinent les deux de manière séquencée et intelligente.
+          digital – elles combinent les deux de manière séquencée et intelligente.
         </p>
 
         <ol>
           <li>
-            <strong>Phase 1 : identification digitale des prospects</strong> — Utilisez une base de
+            <strong>Phase 1 : identification digitale des prospects</strong> – Utilisez une base de
             données comme Sales Companion 2.0 pour filtrer les entreprises par secteur, localisation
             et taille avant de partir en tournée.
           </li>
           <li>
-            <strong>Phase 2 : premier contact digital ou recommandation</strong> — Un message
+            <strong>Phase 2 : premier contact digital ou recommandation</strong> – Un message
             WhatsApp court et personnalisé ou une connexion LinkedIn "réchauffe" le prospect avant
             votre visite.
           </li>
           <li>
-            <strong>Phase 3 : visite terrain pour créer la relation</strong> — La visite physique
+            <strong>Phase 3 : visite terrain pour créer la relation</strong> – La visite physique
             construit la confiance et permet d'exprimer les besoins réels.
           </li>
           <li>
-            <strong>Phase 4 : suivi digital pour maintenir le lien</strong> — Après la visite,
+            <strong>Phase 4 : suivi digital pour maintenir le lien</strong> – Après la visite,
             utilisez WhatsApp ou l'email pour maintenir votre présence.
           </li>
           <li>
-            <strong>Phase 5 : contenu digital pour attirer les prospects entrants</strong> — Un blog
+            <strong>Phase 5 : contenu digital pour attirer les prospects entrants</strong> – Un blog
             SEO et des témoignages en ligne génèrent des leads entrants de manière passive.
           </li>
         </ol>

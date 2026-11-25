@@ -377,6 +377,28 @@ export async function PATCH(request: NextRequest) {
 
     // 1. Mise à jour ou ajout du NIU
     if (body.niu !== undefined) {
+      // Un Manager exécutif ou un Coordinateur invité ne peut pas modifier les informations de gouvernance (NIU)
+      if (userData.orgRole === 'executive') {
+        return NextResponse.json(
+          { error: 'Un Manager exécutif ne peut pas modifier les informations de gouvernance.' },
+          { status: 403 }
+        )
+      }
+      if (userData.orgCode) {
+        const orgSnapForNiu = await adminDb.collection('organisations').doc(userData.orgCode).get()
+        const primarySmUid = orgSnapForNiu.exists ? orgSnapForNiu.data()?.seniorManagerUid : null
+        const isInvitedOrNonPrimary =
+          userData.isPrimarySeniorManager === false ||
+          Boolean(userData.invitedByUid) ||
+          (Boolean(primarySmUid) && primarySmUid !== managerUid)
+        if (isInvitedOrNonPrimary) {
+          return NextResponse.json(
+            { error: 'Un Coordinateur invité ne peut pas modifier les informations de gouvernance.' },
+            { status: 403 }
+          )
+        }
+      }
+
       const rawNiu = String(body.niu).trim()
       if (rawNiu.length > 0) {
         if (!isValidNiuFormat(rawNiu)) {

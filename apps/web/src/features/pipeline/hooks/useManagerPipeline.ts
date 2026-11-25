@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -41,7 +41,7 @@ export const useManagerPipeline = () => {
     },
     enabled: !loading && !!user?.uid && user.role === 'manager',
     staleTime: 60 * 1000,
-    refetchInterval: 5 * 60 * 1000, // 5 min au lieu de 15s — la sync temps réel via usePipelineRealtimeSync invalide déjà le cache à chaque écriture
+    refetchInterval: 5 * 60 * 1000, // 5 min au lieu de 15s – la sync temps réel via usePipelineRealtimeSync invalide déjà le cache à chaque écriture
     refetchOnWindowFocus: true
   })
 }

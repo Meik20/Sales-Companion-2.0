@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -37,7 +37,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
 
-      {/* Identity landmark watermark — responsive: haut-droit derrière le texte sur mobile, ancré à gauche sur desktop */}
+      {/* Identity landmark watermark – responsive: haut-droit derrière le texte sur mobile, ancré à gauche sur desktop */}
       {country.landmarkWatermark && (
         <div
           aria-hidden

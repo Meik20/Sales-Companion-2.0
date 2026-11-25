@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
@@ -23,7 +23,7 @@ type Props = {
 }
 
 function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return 'N/D'
   try {
     return new Date(iso).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -33,7 +33,7 @@ function formatDate(iso: string | null | undefined): string {
       minute: '2-digit'
     })
   } catch {
-    return '—'
+    return 'N/D'
   }
 }
 
@@ -139,7 +139,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                       }}
                       title={payment.userId || ''}
                     >
-                      {payment.userEmail || '—'}
+                      {payment.userEmail || 'N/D'}
                     </span>
                     <span
                       style={{
@@ -180,12 +180,12 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                     color: 'var(--foreground, #f1f5f9)'
                   }}
                 >
-                  {payment.amount !== null ? `${payment.amount.toLocaleString('fr-FR')} FCFA` : '—'}
+                  {payment.amount !== null ? `${payment.amount.toLocaleString('fr-FR')} FCFA` : 'N/D'}
                 </td>
 
                 {/* Opérateur / Transaction */}
                 <td style={{ padding: '16px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                  <div style={{ fontWeight: 600 }}>{payment.operator || '—'}</div>
+                  <div style={{ fontWeight: 600 }}>{payment.operator || 'N/D'}</div>
                   <div
                     style={{
                       fontSize: 11,
@@ -193,7 +193,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                       marginTop: 2
                     }}
                   >
-                    ID: {payment.transactionId || '—'}
+                    ID: {payment.transactionId || 'N/D'}
                   </div>
                 </td>
 
@@ -259,7 +259,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                         fontStyle: 'italic'
                       }}
                     >
-                      —
+                      –
                     </span>
                   )}
                 </td>

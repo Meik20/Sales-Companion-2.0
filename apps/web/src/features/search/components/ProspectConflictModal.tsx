@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
@@ -299,7 +299,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
             <div className="px-3.5 py-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center gap-2">
               <BadgeCheck size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                {t('search.conflictStatusConclue') || 'Client conclu'} —&nbsp;
+                {t('search.conflictStatusConclue') || 'Client conclu'} –&nbsp;
                 {conflict.updatedAt
                   ? new Date(conflict.updatedAt).toLocaleDateString('fr-FR', {
                     day: '2-digit',

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
 import {
@@ -657,7 +657,7 @@ export function PipelineActivityTimeline({
             </div>
           </div>
 
-          {/* Field Mobility — GPS Check-in for visits */}
+          {/* Field Mobility – GPS Check-in for visits */}
           {selectedType === 'visit' && (
             <div
               style={{

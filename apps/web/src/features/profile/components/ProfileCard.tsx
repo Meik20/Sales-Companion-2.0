@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -528,7 +528,7 @@ export function ProfileCard() {
                 </span>
               </div>
 
-              {/* Segment d'appartenance — affiché pour toute organisation / équipe ou si segment défini */}
+              {/* Segment d'appartenance – affiché pour toute organisation / équipe ou si segment défini */}
               {showSegmentBadge && (
                 <div
                   style={{
@@ -860,7 +860,7 @@ export function ProfileCard() {
         </Panel>
       )}
 
-      {/* Stats — masqués pour l'agent support (pas de quota de recherche) */}
+      {/* Stats – masqués pour l'agent support (pas de quota de recherche) */}
       {user.role !== 'support_agent' ? (
         <>
           <StatsGrid>

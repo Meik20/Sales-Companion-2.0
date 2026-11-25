@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { PropsWithChildren, useEffect, useState, useRef } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -249,7 +249,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               <li>
                 Cliquez sur <strong>« Vérifier mon adresse email »</strong>
               </li>
-              <li>Revenez ici — votre accès s&apos;ouvrira automatiquement</li>
+              <li>Revenez ici – votre accès s&apos;ouvrira automatiquement</li>
             </ol>
           </div>
 

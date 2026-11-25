@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
           <!-- Footer -->
           <tr>
             <td style="padding:16px 32px 24px;text-align:center;background-color:#0f172a;border-top:1px solid #1e293b;font-size:11px;color:#64748b;">
-              © ${new Date().getFullYear()} Sales Companion 2.0 — Workspace Commercial & Prospection.<br>
+              © ${new Date().getFullYear()} Sales Companion 2.0 – Workspace Commercial & Prospection.<br>
               Ceci est un email automatique, merci de ne pas y répondre directement.
             </td>
           </tr>

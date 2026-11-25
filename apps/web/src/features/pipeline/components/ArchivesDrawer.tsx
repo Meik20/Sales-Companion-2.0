@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo, useEffect } from 'react'
 import { X, Archive, RotateCcw, Search, Calendar, User, Building2, AlertTriangle } from 'lucide-react'
@@ -40,11 +40,11 @@ function parseTimestampMs(value: any): number | null {
 
 function formatDate(value: any, lang: string = 'fr'): string {
   const ts = parseTimestampMs(value)
-  if (!ts) return '—'
+  if (!ts) return 'N/D'
   try {
     return new Date(ts).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   } catch {
-    return '—'
+    return 'N/D'
   }
 }
 
@@ -474,7 +474,7 @@ export function ArchivesDrawer() {
                         maxWidth: 200
                       }}
                     >
-                      {item.companyName || '—'}
+                      {item.companyName || 'N/D'}
                     </span>
                     <span
                       style={{

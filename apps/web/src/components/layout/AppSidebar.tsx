@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
@@ -118,9 +118,9 @@ function OfflineModeIndicator() {
       title={
         !isOnline
           ? isManualOffline
-            ? 'Mode hors connexion simulé — cliquer pour repasser en ligne'
-            : 'Hors connexion détecté automatiquement — cliquer pour forcer le mode en ligne'
-          : 'Connexion active — cliquer pour simuler le mode hors connexion'
+            ? 'Mode hors connexion simulé – cliquer pour repasser en ligne'
+            : 'Hors connexion détecté automatiquement – cliquer pour forcer le mode en ligne'
+          : 'Connexion active – cliquer pour simuler le mode hors connexion'
       }
     >
       <div className="flex items-center gap-2.5">
@@ -529,7 +529,7 @@ export function AppSidebar({
             </>
           )}
 
-          {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
+          {/* ── P4 – Section: Outils Principaux ─────────────────────────── */}
           <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.prospection')}</SectionLabel>
           <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} collapsed={isNavCollapsed} />
           {user.role !== 'admin' && (
@@ -569,12 +569,12 @@ export function AppSidebar({
           )}
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} collapsed={isNavCollapsed} />
 
-          {/* Indicateur Offline — actif automatiquement si hors connexion */}
+          {/* Indicateur Offline – actif automatiquement si hors connexion */}
           {!isNavCollapsed && <OfflineModeIndicator />}
         </>
       )}
 
-      {/* ── P4 — Section: Équipe (Manager uniquement) ─────────────── */}
+      {/* ── P4 – Section: Équipe (Manager uniquement) ─────────────── */}
       {user.role === 'manager' && (
         <>
           <SectionDivider collapsed={isNavCollapsed} />
@@ -648,7 +648,7 @@ export function AppSidebar({
         </>
       )}
 
-      {/* ── P4 — Section: Paramètres ────────────────────────────────── */}
+      {/* ── P4 – Section: Paramètres ────────────────────────────────── */}
       <SectionDivider collapsed={isNavCollapsed} />
       <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.account')}</SectionLabel>
       <SidebarLink href={routes.settings} label={t('sidebar.settings')} icon={Settings} collapsed={isNavCollapsed} />
@@ -806,7 +806,7 @@ export function AppSidebar({
           return isNavCollapsed ? (
             <div
               className="mb-1.5 flex justify-center py-1 cursor-default"
-              title={`${user.name || user.email || t('sidebar.user')} — ${roleLabel} · ${(user.plan || 'free').toUpperCase()}`}
+              title={`${user.name || user.email || t('sidebar.user')} – ${roleLabel} · ${(user.plan || 'free').toUpperCase()}`}
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20">
                 {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
@@ -861,7 +861,7 @@ export function AppSidebar({
   if (isMobile) {
     return (
       <div className="fixed inset-0 z-[9999] flex">
-        {/* Dark backdrop — tap to close */}
+        {/* Dark backdrop – tap to close */}
         <div
           onClick={onCloseAction}
           className="absolute inset-0 bg-black/75 transition-opacity"

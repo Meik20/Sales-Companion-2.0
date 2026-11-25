@@ -1,4 +1,4 @@
-type Message = {
+﻿type Message = {
   id: string
   content: string
   senderId: string
@@ -22,7 +22,7 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
           padding: '24px 0'
         }}
       >
-        Aucun message — commencez la conversation ci-dessous.
+        Aucun message – commencez la conversation ci-dessous.
       </p>
     )
   }

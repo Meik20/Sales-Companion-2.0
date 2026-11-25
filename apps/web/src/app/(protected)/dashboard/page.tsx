@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -297,7 +297,7 @@ function ActivityItem({ activity, lang }: { activity: OrgRecentActivity; lang: s
         lang === 'en' ? 'en-US' : 'fr-FR',
         { day: '2-digit', month: 'short' }
       )
-    : '—'
+    : 'N/D'
 
   return (
     <div
@@ -819,7 +819,7 @@ export default function DashboardPage() {
                     {realVol}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVol != null ? targetVol : '—'} {t('dashboard.concludedOpportunities') || (lang === 'en' ? 'closed opportunities' : 'opportunités conclues')}
+                    / {targetVol != null ? targetVol : 'N/D'} {t('dashboard.concludedOpportunities') || (lang === 'en' ? 'closed opportunities' : 'opportunités conclues')}
                   </span>
                 </div>
                 {/* Progress bar */}
@@ -877,7 +877,7 @@ export default function DashboardPage() {
                     {formatCompactAmount(realVal, lang)} {currency || 'XAF'}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVal != null ? `${formatCompactAmount(targetVal, lang)} ${currency || 'XAF'}` : '—'}
+                    / {targetVal != null ? `${formatCompactAmount(targetVal, lang)} ${currency || 'XAF'}` : 'N/D'}
                   </span>
                 </div>
                 {/* Progress bar */}

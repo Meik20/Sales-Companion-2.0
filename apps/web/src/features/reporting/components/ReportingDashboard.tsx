@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -68,7 +68,7 @@ function KpiCard({
   const isPersonCard = isPerson || label.toLowerCase().includes('top commercial') || label.toLowerCase().includes('top sales')
 
   // Check if string ends with F, FCFA, or %
-  const strVal = String(value ?? '—')
+  const strVal = String(value ?? 'N/D')
   let mainNumber = strVal
   let suffix = ''
 
@@ -85,7 +85,7 @@ function KpiCard({
 
   // Get initials for person
   let initials = ''
-  if (isPersonCard && strVal && strVal !== '—') {
+  if (isPersonCard && strVal && strVal !== 'N/D') {
     initials = strVal
       .split(' ')
       .filter(Boolean)
@@ -177,7 +177,7 @@ function KpiCard({
       {/* Main Metric Value Area */}
       <div style={{ margin: '2px 0 8px' }}>
         {isPersonCard ? (
-          strVal && strVal !== '—' ? (
+          strVal && strVal !== 'N/D' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
@@ -2641,7 +2641,7 @@ export function ReportingDashboard({
                     {realVol}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVol != null ? targetVol : '—'} {t('reporting.closedDeals') || (lang === 'en' ? 'closed deals' : 'affaires conclues')}
+                    / {targetVol != null ? targetVol : 'N/D'} {t('reporting.closedDeals') || (lang === 'en' ? 'closed deals' : 'affaires conclues')}
                   </span>
                 </div>
                 {/* Progress bar */}
@@ -2699,7 +2699,7 @@ export function ReportingDashboard({
                     {formatFcfa(realVal)}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVal != null ? formatFcfa(targetVal) : '—'}
+                    / {targetVal != null ? formatFcfa(targetVal) : 'N/D'}
                   </span>
                 </div>
                 {/* Progress bar */}
@@ -2763,7 +2763,7 @@ export function ReportingDashboard({
             />
             <KpiCard
               label={t('reporting.kpiTopCommercial')}
-              value={data.topPerformer ?? '—'}
+              value={data.topPerformer ?? 'N/D'}
               sub={t('reporting.kpiTopCommercialSub')}
               color="#f59e0b"
               icon={Trophy}

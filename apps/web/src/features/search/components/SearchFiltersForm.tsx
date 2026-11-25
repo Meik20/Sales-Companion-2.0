@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -584,7 +584,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
             <div className="sc-pills-row">
               <div className="sc-pills-scroll">
                 <div className="sc-pills">
-                  {/* Bouton Accueil — réinitialise à la page d'accueil de recherche */}
+                  {/* Bouton Accueil – réinitialise à la page d'accueil de recherche */}
                   {onHome && (
                     <button
                       type="button"
@@ -615,7 +615,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
               </div>
             </div>
 
-            {/* ── Active filter chips — only shown when there are visible chips (not just sector) ── */}
+            {/* ── Active filter chips – only shown when there are visible chips (not just sector) ── */}
             {!!(query || region || city) && (
               <div className="sc-chips">
                 {query && (

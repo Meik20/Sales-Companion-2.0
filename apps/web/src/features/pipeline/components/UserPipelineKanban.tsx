@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
@@ -869,7 +869,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                 flexDirection: 'column'
               }}
             >
-              {/* Column Header — Fixe au sommet de la colonne */}
+              {/* Column Header – Fixe au sommet de la colonne */}
               <div
                 style={{
                   padding: '14px 18px',
@@ -952,7 +952,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                 </div>
               </div>
 
-              {/* Droppable — Défilement vertical interne exclusif à cette colonne */}
+              {/* Droppable – Défilement vertical interne exclusif à cette colonne */}
               <Droppable droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div
@@ -1032,7 +1032,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                 )}
               </Droppable>
 
-              {/* Column pagination footer — Fixe au bas de la colonne */}
+              {/* Column pagination footer – Fixe au bas de la colonne */}
               {totalPages > 1 && (
                 <div
                   style={{

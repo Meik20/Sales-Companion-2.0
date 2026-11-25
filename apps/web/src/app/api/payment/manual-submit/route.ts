@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 // PLAN_LIMITS et UserPlan retirés : le plan n'est plus mis à jour ici.
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     // uniquement après validation manuelle de l'admin.
     await adminDb.collection('users').doc(userId).update({
       paymentPending: true,
-      paymentPendingPlan: plan, // plan souhaité — affiché dans le panel admin
+      paymentPendingPlan: plan, // plan souhaité – affiché dans le panel admin
       updatedAt: FieldValue.serverTimestamp()
     })
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     await createAdminNotification({
       type: 'payment_submitted',
       title: 'Nouveau paiement en attente',
-      message: `${userEmail} a soumis une preuve de paiement pour le plan ${plan?.toUpperCase()} (${operator} — ID: ${transactionId})`,
+      message: `${userEmail} a soumis une preuve de paiement pour le plan ${plan?.toUpperCase()} (${operator} – ID: ${transactionId})`,
       userId,
       userEmail,
       reference,

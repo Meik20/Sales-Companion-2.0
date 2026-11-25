@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { FieldValue } from 'firebase-admin/firestore'
 
@@ -380,7 +380,7 @@ export async function POST(request: NextRequest) {
           manager_uid: managerId,
           assigned_to: p.assignedTo ?? null,
           assigned_member_name: null,
-          company_name: (p.name ?? '').trim() || '—',
+          company_name: (p.name ?? '').trim() || 'N/D',
           country_code: targetCountry,
           sector: (p.sector ?? '').trim() || null,
           city: (p.city ?? '').trim() || null,
@@ -415,7 +415,7 @@ export async function POST(request: NextRequest) {
             orgCode: null,
             assignedTo: null,
             memberName: callerData?.displayName || callerData?.name || null,
-            companyName: (p.name ?? '').trim() || '—',
+            companyName: (p.name ?? '').trim() || 'N/D',
             companyPhone: (p.phone ?? '').trim() || null,
             companyEmail: (p.email ?? '').trim() || null,
             companyCity: (p.city ?? '').trim() || null,
@@ -504,7 +504,7 @@ export async function POST(request: NextRequest) {
           orgCode: null,
           assignedTo: null,
           memberName: callerData?.displayName || callerData?.name || null,
-          companyName: (p.name ?? '').trim() || '—',
+          companyName: (p.name ?? '').trim() || 'N/D',
           companyPhone: (p.phone ?? '').trim() || null,
           companyEmail: (p.email ?? '').trim() || null,
           companyCity: (p.city ?? '').trim() || null,

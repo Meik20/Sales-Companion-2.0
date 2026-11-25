@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRef, useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -348,7 +348,7 @@ export default function AdminImportsPage() {
               >
                 <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
                 <span>
-                  {t('admin.importSuccess')} — {uploadState.fileName}
+                  {t('admin.importSuccess')} – {uploadState.fileName}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>

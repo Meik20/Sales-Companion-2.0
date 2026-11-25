@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -108,7 +108,7 @@ export function AssignmentsTable() {
       title={t('team.activeAssignments')}
       subtitle={`${count} ${t('team.prospectAssigned')}`}
     >
-      {/* Repair banner — shown if there are legacy assignments */}
+      {/* Repair banner – shown if there are legacy assignments */}
       <div style={{ marginBottom: 16 }}>
         {repairResult && (
           <div
@@ -340,7 +340,7 @@ export function AssignmentsTable() {
                       {a.deadline || a.assignmentDeadline ? (
                         <DeadlineBadge deadline={a.deadline || a.assignmentDeadline} />
                       ) : (
-                        <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>—</span>
+                        <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>-</span>
                       )}
                     </td>
 

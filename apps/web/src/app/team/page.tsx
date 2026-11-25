@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -264,7 +264,7 @@ export default function TeamPage() {
               color: 'var(--foreground, #f1f5f9)'
             }}
           >
-            Gestion d'équipe restreinte — Plan Gratuit
+            Gestion d'équipe restreinte – Plan Gratuit
           </h2>
           <p
             style={{

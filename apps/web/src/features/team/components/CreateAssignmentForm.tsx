@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { FormField } from '@/components/forms/FormField'
 import { Button } from '@/components/ui/Button'
@@ -238,7 +238,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           </div>
         )}
 
-        {/* ── Member selector — always shows only ACTIVE members ── */}
+        {/* ── Member selector – always shows only ACTIVE members ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <label
             style={{

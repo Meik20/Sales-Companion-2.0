@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '../route'
 
@@ -101,7 +101,7 @@ vi.mock('@/lib/firebase-admin', () => ({
   }
 }))
 
-describe('POST /api/team/activate — Protection contre l’élévation de privilèges', () => {
+describe('POST /api/team/activate – Protection contre l’élévation de privilèges', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })

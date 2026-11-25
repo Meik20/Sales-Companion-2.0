@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight, Loader2 } from 'lucide-react'
@@ -668,7 +668,7 @@ export function TeamManagerPerformanceCard({
           </div>
         </div>
 
-        {/* 4. Réalisations — Volume / Valeur / Taux R/O */}
+        {/* 4. Réalisations – Volume / Valeur / Taux R/O */}
         {(() => {
           const tgtVol = periodTargets?.targetVolume ?? null
           const tgtVal = periodTargets?.targetValue ?? null

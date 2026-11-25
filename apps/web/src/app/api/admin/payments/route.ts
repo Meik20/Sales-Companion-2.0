@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const paymentsSnap = await adminDb
       .collection('payments')
       .orderBy('createdAt', 'desc')
-      .limit(100) // Limiter à 100 paiements — évite de charger l'intégralité de la collection
+      .limit(100) // Limiter à 100 paiements – évite de charger l'intégralité de la collection
       .get()
 
     const items = paymentsSnap.docs.map((doc) => {

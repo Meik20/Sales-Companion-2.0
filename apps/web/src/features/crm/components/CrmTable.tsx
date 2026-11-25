@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -84,7 +84,7 @@ export function CrmTable({
   const totalPages = Math.ceil(totalCount / pageSize)
 
   function formatDate(iso?: string) {
-    if (!iso) return '—'
+    if (!iso) return 'N/D'
     return new Date(iso).toLocaleDateString(undefined, {
       day: '2-digit',
       month: '2-digit',
@@ -175,7 +175,7 @@ export function CrmTable({
                     </p>
                     <p className="truncate text-[11px] text-muted-foreground mt-0.5">
                       {[client.companyCity, client.companySector].filter(Boolean).join(' · ') ||
-                        '—'}
+                        'N/D'}
                     </p>
                   </div>
 
@@ -191,7 +191,7 @@ export function CrmTable({
                         <span className="truncate">{client.companyPhone}</span>
                       </a>
                     ) : (
-                      <span className="text-[12px] text-muted-foreground">—</span>
+                      <span className="text-[12px] text-muted-foreground">-</span>
                     )}
                     {client.contactName && (
                       <p className="truncate text-[11px] text-muted-foreground mt-0.5">
@@ -205,7 +205,7 @@ export function CrmTable({
                     {isStatusLocked ? (
                       // Pipeline-concluded clients: status is locked for support agents
                       <div
-                        title="Ce client est déjà CONCLU dans le pipeline — son statut ne peut pas être modifié"
+                        title="Ce client est déjà CONCLU dans le pipeline – son statut ne peut pas être modifié"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -262,7 +262,7 @@ export function CrmTable({
                         )}
                       </>
                     ) : (
-                      <span className="text-[12px] text-muted-foreground">—</span>
+                      <span className="text-[12px] text-muted-foreground">-</span>
                     )}
                   </div>
 
@@ -453,7 +453,7 @@ export function CrmTable({
         <SupportContactModal client={contactModal} onClose={() => setContactModal(null)} />
       )}
 
-      {/* Status dropdown portal — renders outside any overflow:hidden containers */}
+      {/* Status dropdown portal – renders outside any overflow:hidden containers */}
       {statusPopup &&
         typeof document !== 'undefined' &&
         createPortal(

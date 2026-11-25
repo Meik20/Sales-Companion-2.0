@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useAdminCompanies, AdminCompany } from '../hooks/useAdminCompanies'
@@ -534,14 +534,14 @@ function CompanyRow({
   const dateStr =
     importDate && !isNaN(importDate.getTime())
       ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
-      : '—'
+      : 'N/D'
 
   // raisonSociale is the canonical field name from the CSV import
-  const displayName = company.raisonSociale || company.name || '—'
+  const displayName = company.raisonSociale || company.name || 'N/D'
   const displaySigle = company.sigle || ''
-  const displayNiu = company.niu || '—'
-  const displaySector = company.sector || company.activite_principale || '—'
-  const displayCity = company.city || company.ville || '—'
+  const displayNiu = company.niu || 'N/D'
+  const displaySector = company.sector || company.activite_principale || 'N/D'
+  const displayCity = company.city || company.ville || 'N/D'
   const displayRegion = company.region || company.centre_de_rattachement || ''
 
   return (
@@ -670,7 +670,7 @@ function CompanyRow({
           </div>
         ) : (
           <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', opacity: 0.6 }}>
-            —
+            –
           </span>
         )}
       </td>

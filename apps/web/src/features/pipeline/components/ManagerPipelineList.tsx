@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Badge, ConfirmDialog, DeadlineBadge } from '@/components/ui/index'
@@ -598,7 +598,7 @@ function ProspectModal({
             >
               <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <XCircle size={13} />
-                {lang === 'en' ? 'Lost Deal — Failure Analysis' : 'Affaire perdue — Analyse d\'échec'}
+                {lang === 'en' ? 'Lost Deal – Failure Analysis' : 'Affaire perdue – Analyse d\'échec'}
               </div>
               <div style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)', fontWeight: 500 }}>
                 {lang === 'en' ? 'Reason:' : 'Motif :'}{' '}
@@ -903,7 +903,7 @@ function TargetsButton({ members }: { members?: Member[] }) {
 
   return (
     <>
-      {/* Compact trigger button — aligned with ExportButton */}
+      {/* Compact trigger button – aligned with ExportButton */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -2212,7 +2212,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         />
       )}
 
-      {/* ── Panneau d'archivage — TM uniquement, s'affiche quand des leads sont sélectionnés ── */}
+      {/* ── Panneau d'archivage – TM uniquement, s'affiche quand des leads sont sélectionnés ── */}
       {enableArchive && selectedForArchive.size > 0 && (
         <div
           className="mb-3 px-4 py-3 rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 flex items-center gap-3 flex-wrap shadow-xs"
@@ -2471,7 +2471,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                       const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
                       return (
                         <option key={m.uid} value={m.uid}>
-                          {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
+                          {m.name} – {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
                         </option>
                       )
                     })

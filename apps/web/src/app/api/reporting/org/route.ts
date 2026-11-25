@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext, getMonthPeriodInfo } from '@/lib/monthly-cycle'
 import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       if (!seg || !targetSegment) return false
       const s = seg.trim().toLowerCase()
       const t = targetSegment.trim().toLowerCase()
-      return s === t || s.startsWith(t + ' (') || s.startsWith(t + ' —')
+      return s === t || s.startsWith(t + ' (') || s.startsWith(t + ' –')
     }
 
     // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation.

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -396,7 +396,7 @@ export default function ClientDatabasePage() {
                         month: 'short',
                         year: 'numeric'
                       })
-                    : '—'
+                    : 'N/D'
 
                   return (
                     <tr
@@ -409,7 +409,7 @@ export default function ClientDatabasePage() {
                         <div className="font-semibold text-foreground">{client.companyName}</div>
                         <div className="text-[12px] text-muted-foreground">
                           {client.contactName ? `${client.contactName} · ` : ''}
-                          {client.companySector || client.companyCity || '—'}
+                          {client.companySector || client.companyCity || 'N/D'}
                         </div>
                       </td>
 
@@ -433,7 +433,7 @@ export default function ClientDatabasePage() {
                       {/* Montant conclu */}
                       <td className="px-4 py-3.5">
                         <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          {client.amount ? formatCurrency(client.amount, client.currency || 'XAF') : '—'}
+                          {client.amount ? formatCurrency(client.amount, client.currency || 'XAF') : 'N/D'}
                         </span>
                       </td>
 
@@ -567,7 +567,7 @@ export default function ClientDatabasePage() {
             <div className="mt-4 space-y-2 rounded-xl border border-border p-3.5 text-[13px]">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t('clientDatabase.modalReferentContact')}</span>
-                <span className="font-medium text-foreground">{selectedClient.contactName || '—'}</span>
+                <span className="font-medium text-foreground">{selectedClient.contactName || 'N/D'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t('clientDatabase.modalPhone')}</span>
@@ -580,7 +580,7 @@ export default function ClientDatabasePage() {
                     {selectedClient.companyPhone}
                   </a>
                 ) : (
-                  <span>—</span>
+                  <span>-</span>
                 )}
               </div>
               <div className="flex items-center justify-between">
@@ -594,7 +594,7 @@ export default function ClientDatabasePage() {
                     {selectedClient.companyEmail}
                   </a>
                 ) : (
-                  <span>—</span>
+                  <span>-</span>
                 )}
               </div>
               {selectedClient.address && (

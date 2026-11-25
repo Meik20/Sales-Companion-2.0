@@ -1,4 +1,4 @@
-/**
+﻿/**
  * subscriptionStatus.ts
  * Utilitaire partagé : calcule la validité dynamique d'un abonnement
  * et retourne couleur, label et progression selon les jours restants.
@@ -51,9 +51,9 @@ export function getSubscriptionStatus(
       color: 'var(--muted-foreground, #94a3b8)',
       bgColor: 'rgba(148,163,184,0.08)',
       borderColor: 'rgba(148,163,184,0.2)',
-      label: '—',
-      shortLabel: '—',
-      dateLabel: '—',
+      label: 'N/D',
+      shortLabel: 'N/D',
+      dateLabel: 'N/D',
       percent: 0
     }
   }

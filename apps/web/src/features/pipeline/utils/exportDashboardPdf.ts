@@ -1,4 +1,4 @@
-/**
+﻿/**
  * exportDashboardPdf.ts
  * Utilitaire d'exportation PDF exécutive du tableau de bord de segment (Direction Générale / SM).
  * Génère une maquette imprimable vectorielle haute fidélité (A4 portrait) conforme à la charte de marque.
@@ -224,9 +224,9 @@ export function exportDashboardPdf({
       </svg>
       <div>
         <h1 class="brand-title">SALES COMPANION 2.0</h1>
-        <p class="brand-subtitle">${isEn ? 'EXECUTIVE SEGMENT PERFORMANCE REPORT' : 'RAPPORT DE BILAN EXÉCUTIF — DIRECTION GÉNÉRALE'}</p>
+        <p class="brand-subtitle">${isEn ? 'EXECUTIVE SEGMENT PERFORMANCE REPORT' : 'RAPPORT DE BILAN EXÉCUTIF – DIRECTION GÉNÉRALE'}</p>
         <div style="font-size: 10.5px; color: #475569; margin-top: 2px;">
-          ${companyName ? `<strong>${companyName}</strong> · ` : ''}Segment : <strong>${data.orgCode}</strong> · ${isEn ? 'Coordinator' : 'Coordinateur'} : <strong>${seniorManagerName || '—'}</strong>
+          ${companyName ? `<strong>${companyName}</strong> · ` : ''}Segment : <strong>${data.orgCode}</strong> · ${isEn ? 'Coordinator' : 'Coordinateur'} : <strong>${seniorManagerName || 'N/D'}</strong>
         </div>
       </div>
     </div>
@@ -249,7 +249,7 @@ export function exportDashboardPdf({
         </span>
       </div>
       <div class="card-value" style="color: #10b981; margin-top: 4px;">
-        ${realVol} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVol != null ? targetVol : '—'} ${isEn ? 'closed' : 'conclues'}</span>
+        ${realVol} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVol != null ? targetVol : 'N/D'} ${isEn ? 'closed' : 'conclues'}</span>
       </div>
     </div>
 
@@ -261,7 +261,7 @@ export function exportDashboardPdf({
         </span>
       </div>
       <div class="card-value" style="color: #3b82f6; margin-top: 4px;">
-        ${formatCompactAmount(realVal, lang)} ${currency} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVal != null ? `${formatCompactAmount(targetVal, lang)} ${currency}` : '—'}</span>
+        ${formatCompactAmount(realVal, lang)} ${currency} <span style="font-size: 13px; font-weight: 600; color: #64748b;">/ ${targetVal != null ? `${formatCompactAmount(targetVal, lang)} ${currency}` : 'N/D'}</span>
       </div>
     </div>
   </div>
@@ -318,14 +318,14 @@ export function exportDashboardPdf({
                 (mgr, idx) => `
         <tr>
           <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
-          <td><strong>${mgr.name || '—'}</strong> ${mgr.isSenior ? '<span style="font-size: 9px; color: #6366f1;">(Coord.)</span>' : ''}</td>
-          <td style="color: #64748b;">${mgr.email || '—'}</td>
+          <td><strong>${mgr.name || 'N/D'}</strong> ${mgr.isSenior ? '<span style="font-size: 9px; color: #6366f1;">(Coord.)</span>' : ''}</td>
+          <td style="color: #64748b;">${mgr.email || 'N/D'}</td>
           <td style="text-align: center; color: #3b82f6; font-weight: 600;">${(mgr.stats.prospection || 0) + (mgr.stats.negociation || 0)}</td>
           <td style="text-align: center; color: #10b981; font-weight: 700;">${mgr.stats.conclue}</td>
-          <td style="text-align: center;">${mgr.targetVolume != null ? mgr.targetVolume : '—'}</td>
+          <td style="text-align: center;">${mgr.targetVolume != null ? mgr.targetVolume : 'N/D'}</td>
           <td style="text-align: center;">
             <span class="badge ${mgr.volumeAttainmentRate != null ? (mgr.volumeAttainmentRate >= 100 ? 'badge-success' : mgr.volumeAttainmentRate >= 70 ? 'badge-warning' : 'badge-danger') : 'badge-neutral'}">
-              ${mgr.volumeAttainmentRate != null ? `${mgr.volumeAttainmentRate}%` : '—'}
+              ${mgr.volumeAttainmentRate != null ? `${mgr.volumeAttainmentRate}%` : 'N/D'}
             </span>
           </td>
         </tr>`
@@ -350,7 +350,7 @@ export function exportDashboardPdf({
     <div class="card" style="border-left: 4px solid #6366f1;">
       <div class="card-label">${isEn ? 'Win / Loss Ratio' : 'Ratio de Victoire (Win Ratio)'}</div>
       <div class="card-value" style="color: #6366f1;">
-        ${winRate != null ? `${winRate}%` : '—'}
+        ${winRate != null ? `${winRate}%` : 'N/D'}
       </div>
       <div class="card-sub">${realVol} ${isEn ? 'won vs' : 'gagnées contre'} ${lostCount} ${isEn ? 'lost' : 'perdues'}</div>
     </div>
@@ -410,8 +410,8 @@ export function exportDashboardPdf({
         <tr>
           <td><strong>${act.companyName}</strong></td>
           <td>${act.managerName}</td>
-          <td>${act.memberName || '—'}</td>
-          <td style="text-align: right; color: #64748b;">${act.updatedAt ? new Date(act.updatedAt).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short' }) : '—'}</td>
+          <td>${act.memberName || 'N/D'}</td>
+          <td style="text-align: right; color: #64748b;">${act.updatedAt ? new Date(act.updatedAt).toLocaleDateString(isEn ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short' }) : 'N/D'}</td>
         </tr>`
               )
               .join('')

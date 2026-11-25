@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -174,7 +174,7 @@ export default function AdminLogsPage() {
                               fontSize: 13
                             }}
                           >
-                            {log.userName || '—'}
+                            {log.userName || 'N/D'}
                           </span>
                         </div>
                       </td>
@@ -185,7 +185,7 @@ export default function AdminLogsPage() {
                           fontSize: 12
                         }}
                       >
-                        {log.userEmail || '—'}
+                        {log.userEmail || 'N/D'}
                       </td>
                       <td
                         style={{
@@ -203,7 +203,7 @@ export default function AdminLogsPage() {
                             ? `Secteur: ${log.sector}`
                             : log.city
                               ? `Ville: ${log.city}`
-                              : '—')}
+                              : 'N/D')}
                       </td>
                       <td style={{ padding: '12px' }}>
                         <div
@@ -250,7 +250,7 @@ export default function AdminLogsPage() {
                                   day: '2-digit',
                                   month: 'short'
                                 })
-                              : '—'}
+                              : 'N/D'}
                           </span>
                           <span style={{ opacity: 0.7 }}>
                             {log.createdAt

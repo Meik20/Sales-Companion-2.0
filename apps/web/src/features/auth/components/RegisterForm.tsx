@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -409,11 +409,11 @@ export function RegisterForm() {
           <div className="flex-1">
             <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
-                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur — Segment : {orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment) || 'Nouveau Segment'}</>
+                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur – Segment : {orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment) || 'Nouveau Segment'}</>
               ) : orgInviteInfo.type === 'executive' ? (
-                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ' — Supervision Globale (Tous les segments)'}</>
+                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation – {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ' – Supervision Globale (Tous les segments)'}</>
               ) : (
-                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ''}</>
+                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ''}</>
               )}
             </div>
             <div className="text-[11.5px] text-indigo-800 dark:text-indigo-200/90 mt-1 leading-relaxed">
@@ -753,7 +753,7 @@ export function RegisterForm() {
                     ? 'Poste de direction générale / supervision stratégique'
                     : orgInviteInfo?.type === 'senior_manager'
                       ? "Indiquez la division / secteur que vous dirigez (ex: BTP, IT, Agro, Retail)"
-                      : "Optionnel — Segment ou division commerciale (ex: BTP, Tech, Services)"
+                      : "Optionnel – Segment ou division commerciale (ex: BTP, Tech, Services)"
               }
             >
               <div className="relative">
@@ -802,8 +802,8 @@ export function RegisterForm() {
               }
               hint={
                 lang === 'en'
-                  ? 'Optional — Provided by your Coordinator via email invitation'
-                  : "Optionnel — Fourni par votre Coordinateur via lien ou email d'invitation"
+                  ? 'Optional – Provided by your Coordinator via email invitation'
+                  : "Optionnel – Fourni par votre Coordinateur via lien ou email d'invitation"
               }
             >
               <div className="flex flex-col gap-2">

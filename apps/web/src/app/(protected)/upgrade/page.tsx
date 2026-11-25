@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -204,7 +204,7 @@ export default function UpgradePage() {
 
         pushToast({
           type: 'success',
-          title: `Compte activé — Plan ${user.plan.toUpperCase()}`,
+          title: `Compte activé – Plan ${user.plan.toUpperCase()}`,
           description: 'Votre plan a été activé avec succès ! Redirection vers votre espace...'
         })
 
@@ -524,7 +524,7 @@ export default function UpgradePage() {
                     position: 'relative'
                   }}
                 >
-                  {/* Indice taille d'entreprise — affiché uniquement pour les managers */}
+                  {/* Indice taille d'entreprise – affiché uniquement pour les managers */}
                   {isNewManager && (p as any).companySize && (
                     <div
                       style={{

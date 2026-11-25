@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -416,7 +416,7 @@ export function IndependentImportPanel() {
             className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
           >
             <Sparkles size={15} />
-            UPGRADE — Débloquer l’import
+            UPGRADE – Débloquer l’import
           </button>
         </div>
       </Panel>
@@ -556,16 +556,16 @@ export function IndependentImportPanel() {
                   {preview.map((p, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-background' : 'bg-secondary/30'}>
                       <td className="px-3 py-2 text-foreground font-medium truncate max-w-[120px]">
-                        {p.name || '—'}
+                        {p.name || 'N/D'}
                       </td>
                       <td className="px-3 py-2 text-foreground truncate max-w-[100px]">
-                        {p.phone || '—'}
+                        {p.phone || 'N/D'}
                       </td>
                       <td className="px-3 py-2 text-foreground truncate max-w-[140px]">
-                        {p.email || '—'}
+                        {p.email || 'N/D'}
                       </td>
-                      <td className="px-3 py-2 text-foreground">{p.city || '—'}</td>
-                      <td className="px-3 py-2 text-foreground">{p.sector || '—'}</td>
+                      <td className="px-3 py-2 text-foreground">{p.city || 'N/D'}</td>
+                      <td className="px-3 py-2 text-foreground">{p.sector || 'N/D'}</td>
                     </tr>
                   ))}
                 </tbody>

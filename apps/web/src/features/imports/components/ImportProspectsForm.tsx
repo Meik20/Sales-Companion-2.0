@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -384,7 +384,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               content={
                 <>
                   <strong className="block mb-1">Formats supportés</strong>
-                  CSV, TSV, TXT, XLSX, XLS, JSON — séparateurs auto-détectés (, ; Tab | ~).
+                  CSV, TSV, TXT, XLSX, XLS, JSON – séparateurs auto-détectés (, ; Tab | ~).
                   <br />
                   <span className="text-muted-foreground">Colonnes acceptées : Nom entreprise, Téléphone, Email, Ville, Secteur, Notes</span>
                 </>
@@ -506,19 +506,19 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
                     style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}
                   >
                     <td style={{ padding: '6px 10px', color: 'var(--foreground, #f1f5f9)' }}>
-                      {row.name || '—'}
+                      {row.name || 'N/D'}
                     </td>
                     <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {row.phone || '—'}
+                      {row.phone || 'N/D'}
                     </td>
                     <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {row.email || '—'}
+                      {row.email || 'N/D'}
                     </td>
                     <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {row.city || '—'}
+                      {row.city || 'N/D'}
                     </td>
                     <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {row.sector || '—'}
+                      {row.sector || 'N/D'}
                     </td>
                   </tr>
                 ))}

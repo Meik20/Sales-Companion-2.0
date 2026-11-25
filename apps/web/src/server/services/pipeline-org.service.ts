@@ -1,4 +1,4 @@
-// apps/web/src/server/services/pipeline-org.service.ts
+﻿// apps/web/src/server/services/pipeline-org.service.ts
 // Service métier d'agrégation du pipeline consolidé pour le Senior Manager.
 // Protège l'invariant hiérarchique à 4 niveaux et respecte la limite de 30 éléments de Firestore 'in'.
 
@@ -126,7 +126,7 @@ export async function fetchOrgConsolidatedPipeline(
     if (!seg || !callerSegment) return false
     const s = seg.trim().toLowerCase()
     const c = callerSegment.trim().toLowerCase()
-    return s === c || s.startsWith(c + ' (') || s.startsWith(c + ' —')
+    return s === c || s.startsWith(c + ' (') || s.startsWith(c + ' –')
   }
 
   if (!isCallerExecutive) {

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
@@ -405,7 +405,7 @@ export async function GET(request: NextRequest) {
 
         if (managerId && tmMap.has(managerId)) {
           orgManagerUids = [managerId]
-          exportScopeLabel = `TM — ${tmMap.get(managerId)!.name.toUpperCase()}`
+          exportScopeLabel = `TM – ${tmMap.get(managerId)!.name.toUpperCase()}`
         } else {
           orgManagerUids = Array.from(tmMap.keys())
           exportScopeLabel = 'ORGANISATION'
@@ -1045,7 +1045,7 @@ export async function GET(request: NextRequest) {
     // Titre du rapport (13 colonnes : A1:M1)
     summarySheet.mergeCells('A1:M1')
     const titleCell = summarySheet.getCell('A1')
-    titleCell.value = `📊 RAPPORT DE PERFORMANCE — PIPELINE ${exportScopeLabel}`
+    titleCell.value = `📊 RAPPORT DE PERFORMANCE – PIPELINE ${exportScopeLabel}`
     titleCell.font = { name: 'Calibri', bold: true, size: 14, color: { argb: COLOR_HEADER_FG } }
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_HEADER_BG } }
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
@@ -1168,7 +1168,7 @@ export async function GET(request: NextRequest) {
         // Col R/O — fond légèrement différencié
         if (colIdx === 12) {
           if (val == null) {
-            cell.value = '—'
+            cell.value = 'N/D'
             cell.font = { name: 'Calibri', italic: true, size: 10, color: { argb: '999999' } }
           }
           cell.fill = {
@@ -1241,7 +1241,7 @@ export async function GET(request: NextRequest) {
       if (colIdx === 12) {
         cell.numFmt = '0%'
         if (val == null) {
-          cell.value = '—'
+          cell.value = 'N/D'
           cell.font = { name: 'Calibri', italic: true, size: 11, color: { argb: '999999' } }
         }
       }
