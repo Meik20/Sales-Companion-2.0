@@ -169,6 +169,7 @@ export async function GET(request: NextRequest) {
     // Requiert un index composite Firestore : (orgCode ASC, role ASC)
     let managers: any[] = []
     let executives: any[] = []
+    let coordinators: any[] = []
     let availableSegments: string[] = []
     let managersLoadError: string | null = null
     if (orgCode) {
@@ -262,6 +263,29 @@ export async function GET(request: NextRequest) {
                 segments: Array.isArray(eData.segments) ? eData.segments : []
               }
             })
+
+          // Pour le Coordinateur principal (SM1) : lister tous les Coordinateurs de l'organisation
+          coordinators = orgManagersSnap.docs
+            .filter((d) => (d.id === managerUid ? orgRole : d.data().orgRole) === 'senior_manager')
+            .map((d) => {
+              const cData = d.data()
+              const cSeg = cData.segment || (d.id === managerUid ? userData.segment : null) || null
+              const cZone = cData.zone || null
+              const cDisplay = cData.displaySegment || (cZone && cSeg ? `${cSeg} (${cZone})` : cSeg)
+              return {
+                uid: d.id,
+                name: cData.displayName || cData.name || cData.email,
+                email: cData.email,
+                phone: cData.phone || null,
+                orgRole: 'senior_manager',
+                segment: cSeg,
+                zone: cZone,
+                displaySegment: cDisplay,
+                isPrimary: d.id === (primarySeniorManagerUid || managerUid),
+                isCurrent: d.id === managerUid,
+                createdAt: cData.createdAt?.toDate ? cData.createdAt.toDate().toISOString() : null
+              }
+            })
         }
 
         console.log(
@@ -289,6 +313,7 @@ export async function GET(request: NextRequest) {
       country: userData.country || 'CM',
       managers,
       executives,
+      coordinators: isPrimarySeniorManager ? coordinators : [],
       availableSegments: isPrimarySeniorManager ? availableSegments : [],
       ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
