@@ -663,10 +663,14 @@ export function TeamManagerPerformanceCard({
             {stats.overdueCount > 0 || stats.stagnantCount > 0
               ? (isGlobal && !isTeamContext
                   ? (lang === 'en' ? 'Follow-ups or stagnant leads requiring action' : 'Relances ou leads stagnants nécessitant attention')
-                  : (lang === 'en' ? 'Follow-ups or stagnant leads on team' : "Relances expirées ou leads stagnants sur l'équipe"))
+                  : (manager?.isSenior
+                      ? (lang === 'en' ? 'Follow-ups or stagnant leads in this coordination' : 'Relances ou leads stagnants dans cette coordination')
+                      : (lang === 'en' ? 'Follow-ups or stagnant leads on team' : "Relances expirées ou leads stagnants sur l'équipe")))
               : (isGlobal && !isTeamContext
                   ? t('pipeline.noOverdueOnOrg')
-                  : t('pipeline.noOverdueOnTeam'))}
+                  : (manager?.isSenior
+                      ? t('pipeline.noOverdueOnCoordination')
+                      : t('pipeline.noOverdueOnTeam')))}
           </div>
         </div>
 

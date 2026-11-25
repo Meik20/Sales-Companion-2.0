@@ -223,7 +223,7 @@ export default function PipelinePage() {
     )
     return {
       memberId: filterManagerUid,
-      memberName: selectedManager?.name ?? (lang === 'en' ? 'Supervisor' : 'Superviseur'),
+      memberName: selectedManager?.name ?? (selectedManager?.isSenior ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')),
       targetVolume: targetVolume > 0 ? targetVolume : null,
       targetValue: targetValue > 0 ? targetValue : null,
       period: activePeriod
