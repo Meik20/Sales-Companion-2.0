@@ -167,7 +167,7 @@ export function Stack({ children, gap = 12 }: StackProps) {
 // ─── DataCard ────────────────────────────────────────────────────────────────
 
 type DataCardProps = PropsWithChildren<{
-  title: ReactNode
+  title?: ReactNode
   subtitle?: ReactNode
   actions?: ReactNode
   style?: CSSProperties
@@ -178,52 +178,58 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
     typeof subtitle === 'string' &&
     (/^\d/.test(subtitle.trim()) || (subtitle.length <= 25 && !subtitle.includes('.')))
 
+  const hasHeader = Boolean(title || subtitle || actions)
+
   return (
     <Panel style={style}>
       <Stack gap={14}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-            flexWrap: 'wrap'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: 14,
-                fontWeight: 600,
-                color: 'var(--foreground, #101828)',
-                letterSpacing: '-.01em'
-              }}
-            >
-              {title}
-            </h2>
-            {subtitle ? (
-              isCountBadge ? (
-                <span
+        {hasHeader && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+              {title ? (
+                <h2
                   style={{
-                    fontSize: 11,
-                    fontWeight: 500,
-                    color: 'var(--muted-foreground)',
-                    background: 'var(--secondary)',
-                    border: '1px solid var(--border)',
-                    padding: '1px 7px',
-                    borderRadius: 10
+                    margin: 0,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'var(--foreground, #101828)',
+                    letterSpacing: '-.01em'
                   }}
                 >
-                  {subtitle}
-                </span>
-              ) : (
-                <InfoTooltip content={subtitle} size={13} placement="right" />
-              )
-            ) : null}
+                  {title}
+                </h2>
+              ) : null}
+              {subtitle ? (
+                isCountBadge ? (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 500,
+                      color: 'var(--muted-foreground)',
+                      background: 'var(--secondary)',
+                      border: '1px solid var(--border)',
+                      padding: '1px 7px',
+                      borderRadius: 10
+                    }}
+                  >
+                    {subtitle}
+                  </span>
+                ) : (
+                  <InfoTooltip content={subtitle} size={13} placement="right" />
+                )
+              ) : null}
+            </div>
+            {actions ? <div>{actions}</div> : null}
           </div>
-          {actions ? <div>{actions}</div> : null}
-        </div>
+        )}
         {children}
       </Stack>
     </Panel>

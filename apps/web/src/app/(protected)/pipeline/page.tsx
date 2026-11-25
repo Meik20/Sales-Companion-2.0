@@ -760,42 +760,23 @@ export default function PipelinePage() {
           {/* Liste consolidée org */}
           <DataCard
             title={
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span>
-                  {selectedManager
-                    ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}`
-                    : (isExecutive
-                      ? (lang === 'en'
-                        ? `Consolidated Pipeline – Segment : ${activeSegment || 'All'}`
-                        : `Pipeline Consolidé – Segment : ${activeSegment || 'Tous'}`)
-                      : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
-                </span>
-                {filterManagerUid && (
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      color: 'var(--primary)',
-                      background: 'rgba(99, 102, 241, 0.12)',
-                      border: '1px solid rgba(99, 102, 241, 0.28)',
-                      padding: '2px 8px',
-                      borderRadius: 12,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <Filter size={10} className="shrink-0 opacity-80" />
-                    <span>{t('pipeline.filteredByTeamManager') || t('pipeline.filteredByManager') || (lang === 'en' ? 'Filtered by Supervisor' : 'Filtré par Superviseur')}</span>
-                  </span>
-                )}
-              </div>
+              selectedManager
+                ? undefined
+                : (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span>
+                      {isExecutive
+                        ? (lang === 'en'
+                          ? `Consolidated Pipeline – Segment : ${activeSegment || 'All'}`
+                          : `Pipeline Consolidé – Segment : ${activeSegment || 'Tous'}`)
+                        : (t('pipeline.orgPipeline') || 'Pipeline du Segment')}
+                    </span>
+                  </div>
+                )
             }
             subtitle={
               selectedManager
-                ? (lang === 'en'
-                  ? `Opportunities managed by ${selectedManager.name || 'this Supervisor'}`
-                  : `Opportunités gérées par ${selectedManager.name || 'ce Superviseur'}`)
+                ? undefined
                 : (t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment')
             }
           >

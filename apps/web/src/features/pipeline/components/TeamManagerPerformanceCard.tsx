@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useMemo, useState } from 'react'
 import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight, Loader2 } from 'lucide-react'
@@ -339,7 +339,9 @@ export function TeamManagerPerformanceCard({
                   ? (isTeamContext
                       ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
                       : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
-                  : (t('sidebar.teamManagerRole') || 'Superviseur')}
+                  : (manager?.isSenior
+                      ? (lang === 'en' ? 'Coordinator' : 'Coordinateur')
+                      : (t('sidebar.teamManagerRole') || (lang === 'en' ? 'Supervisor' : 'Superviseur')))}
               </span>
               <InfoTooltip
                 content={
