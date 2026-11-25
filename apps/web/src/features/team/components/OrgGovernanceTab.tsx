@@ -394,8 +394,8 @@ export function OrgGovernanceTab() {
         type: 'error',
         title: lang === 'en' ? 'Missing fields' : 'Champs obligatoires',
         description: lang === 'en'
-          ? 'Both market segment and geographic zone are required.'
-          : 'Le segment d\'activité et la zone géographique sont obligatoires.'
+          ? 'Both market segment and zone are required.'
+          : 'Le segment d\'activité et la zone sont obligatoires.'
       })
       return
     }
@@ -816,11 +816,11 @@ export function OrgGovernanceTab() {
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                            {lang === 'en' ? 'Geographic zone *' : 'Zone géographique *'}
+                            {lang === 'en' ? 'Zone *' : 'Zone *'}
                           </label>
                           <input
                             type="text"
-                            placeholder={lang === 'en' ? 'e.g. Littoral, Centre, West…' : 'ex: Littoral, Centre, Ouest…'}
+                            placeholder={lang === 'en' ? 'e.g. Littoral, Centre, Direct…' : 'ex: Littoral, Centre, Canal Direct…'}
                             value={smZoneInput}
                             onChange={(e) => setSmZoneInput(e.target.value)}
                             maxLength={40}

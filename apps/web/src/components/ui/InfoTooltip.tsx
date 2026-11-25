@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Info } from 'lucide-react'
 
 type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
@@ -33,50 +34,73 @@ export function InfoTooltip({
 }: InfoTooltipProps) {
   const [open, setOpen] = useState(false)
   const [effectivePlacement, setEffectivePlacement] = useState<TooltipPlacement>(preferredPlacement)
-  const [horizontalShift, setHorizontalShift] = useState(0)
+  const [coords, setCoords] = useState<{ top: number; left: number; arrowLeft?: number } | null>(null)
   const triggerRef = useRef<HTMLSpanElement>(null)
   const popoverRef = useRef<HTMLSpanElement>(null)
 
-  // Ajustement automatique en cas de collision avec les bords de l'écran
+  // Calcul de position fixe via Portal pour éviter tout rognage par un overflow:hidden parent
   useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return
-
-    const triggerRect = triggerRef.current.getBoundingClientRect()
-    let nextPlacement = preferredPlacement
-
-    // 1. Détection de collision latérale pour le placement 'left'
-    if (preferredPlacement === 'left' && triggerRect.left < 260) {
-      // Trop proche du bord gauche (ex: sidebar) -> bascule à droite ou en haut
-      nextPlacement = window.innerWidth - triggerRect.right >= 260 ? 'right' : 'top'
-    } else if (preferredPlacement === 'right' && window.innerWidth - triggerRect.right < 260) {
-      nextPlacement = triggerRect.left >= 260 ? 'left' : 'top'
+    if (!open || !triggerRef.current) {
+      setCoords(null)
+      return
     }
 
-    // 2. Détection de collision verticale pour le placement 'top'
-    if (nextPlacement === 'top' && triggerRect.top < 80) {
-      nextPlacement = 'bottom'
+    const updatePosition = () => {
+      if (!triggerRef.current) return
+      const tRect = triggerRef.current.getBoundingClientRect()
+      const pRect = popoverRef.current?.getBoundingClientRect()
+      const popW = pRect?.width ?? 260
+      const popH = pRect?.height ?? 64
+      const gap = 8
+      const padding = 12
+
+      let nextPlacement = preferredPlacement
+      if (preferredPlacement === 'left' && tRect.left < popW + padding) {
+        nextPlacement = window.innerWidth - tRect.right >= popW + padding ? 'right' : 'top'
+      } else if (preferredPlacement === 'right' && window.innerWidth - tRect.right < popW + padding) {
+        nextPlacement = tRect.left >= popW + padding ? 'left' : 'top'
+      }
+      if (nextPlacement === 'top' && tRect.top < popH + gap + padding) {
+        nextPlacement = 'bottom'
+      } else if (nextPlacement === 'bottom' && window.innerHeight - tRect.bottom < popH + gap + padding) {
+        nextPlacement = 'top'
+      }
+
+      const triggerCenterX = tRect.left + tRect.width / 2
+      const triggerCenterY = tRect.top + tRect.height / 2
+
+      let top = 0
+      let left = 0
+      let arrowLeft: number | undefined
+
+      if (nextPlacement === 'top' || nextPlacement === 'bottom') {
+        top = nextPlacement === 'top' ? tRect.top - popH - gap : tRect.bottom + gap
+        const idealLeft = triggerCenterX - popW / 2
+        left = Math.max(padding, Math.min(idealLeft, window.innerWidth - popW - padding))
+        arrowLeft = Math.max(12, Math.min(triggerCenterX - left, popW - 12))
+      } else if (nextPlacement === 'left') {
+        left = Math.max(padding, tRect.left - popW - gap)
+        top = Math.max(padding, Math.min(triggerCenterY - popH / 2, window.innerHeight - popH - padding))
+      } else {
+        left = Math.min(window.innerWidth - popW - padding, tRect.right + gap)
+        top = Math.max(padding, Math.min(triggerCenterY - popH / 2, window.innerHeight - popH - padding))
+      }
+
+      setEffectivePlacement(nextPlacement)
+      setCoords({ top, left, arrowLeft })
     }
 
-    setEffectivePlacement(nextPlacement)
+    updatePosition()
+    // Recalculer au frame suivant une fois que popoverRef est mesuré
+    const raf = requestAnimationFrame(updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
   }, [open, preferredPlacement])
-
-  // Ajustement fin du décalage horizontal pour empêcher tout masquage par les bords d'écran
-  useEffect(() => {
-    if (!open || !popoverRef.current) return
-
-    const popoverRect = popoverRef.current.getBoundingClientRect()
-    const padding = 12
-
-    if (popoverRect.left < padding) {
-      // Déborde à gauche : décaler vers la droite
-      setHorizontalShift(padding - popoverRect.left)
-    } else if (popoverRect.right > window.innerWidth - padding) {
-      // Déborde à droite : décaler vers la gauche
-      setHorizontalShift(window.innerWidth - padding - popoverRect.right)
-    } else {
-      setHorizontalShift(0)
-    }
-  }, [open, effectivePlacement])
 
   // Fermer si clic extérieur
   useEffect(() => {
@@ -100,18 +124,11 @@ export function InfoTooltip({
     return () => document.removeEventListener('keydown', handler)
   }, [open])
 
-  const PLACEMENTS: Record<TooltipPlacement, string> = {
-    top: 'bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2',
-    bottom: 'top-[calc(100%+8px)] left-1/2 -translate-x-1/2',
-    left: 'right-[calc(100%+8px)] top-1/2 -translate-y-1/2',
-    right: 'left-[calc(100%+8px)] top-1/2 -translate-y-1/2'
-  }
-
   const ARROWS: Record<TooltipPlacement, string> = {
     top:
-      'top-full left-1/2 -translate-x-1/2 border-t-[color:var(--border)] border-l-transparent border-r-transparent border-b-transparent border-[6px]',
+      'top-full -translate-x-1/2 border-t-[color:var(--border)] border-l-transparent border-r-transparent border-b-transparent border-[6px]',
     bottom:
-      'bottom-full left-1/2 -translate-x-1/2 border-b-[color:var(--border)] border-l-transparent border-r-transparent border-t-transparent border-[6px]',
+      'bottom-full -translate-x-1/2 border-b-[color:var(--border)] border-l-transparent border-r-transparent border-t-transparent border-[6px]',
     left:
       'left-full top-1/2 -translate-y-1/2 border-l-[color:var(--border)] border-t-transparent border-b-transparent border-r-transparent border-[6px]',
     right:
@@ -140,35 +157,33 @@ export function InfoTooltip({
         <Info size={size} strokeWidth={1.8} />
       </button>
 
-      {/* Popover auto-ajustable */}
-      {open && (
-        <span
-          ref={popoverRef}
-          role="tooltip"
-          className={`
-            pointer-events-none absolute z-[9999] w-max max-w-[280px]
-            rounded-xl border border-border bg-card px-3.5 py-2.5
-            text-[12px] leading-relaxed text-foreground shadow-lg
-            animate-in fade-in-0 zoom-in-95 duration-150
-            ${PLACEMENTS[effectivePlacement]}
-          `}
-          style={{
-            backdropFilter: 'blur(8px)',
-            transform: horizontalShift !== 0 ? `translateX(calc(-50% + ${horizontalShift}px))` : undefined
-          }}
-        >
-          {content}
-          {/* Flèche décorative */}
+      {/* Popover rendu en Portal fixed pour éviter tout rognage */}
+      {open &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <span
-            aria-hidden
-            className={`absolute h-0 w-0 ${ARROWS[effectivePlacement]}`}
+            ref={popoverRef}
+            role="tooltip"
+            className="pointer-events-none fixed z-[9999] w-max max-w-[280px] rounded-xl border border-border bg-card px-3.5 py-2.5 text-[12px] leading-relaxed text-foreground shadow-lg"
             style={{
-              borderStyle: 'solid',
-              transform: horizontalShift !== 0 ? `translateX(calc(-50% - ${horizontalShift}px))` : undefined
+              top: coords?.top ?? -9999,
+              left: coords?.left ?? -9999,
+              opacity: coords ? 1 : 0,
+              backgroundColor: 'var(--card)'
             }}
-          />
-        </span>
-      )}
+          >
+            {content}
+            <span
+              aria-hidden
+              className={`absolute h-0 w-0 ${ARROWS[effectivePlacement]}`}
+              style={{
+                borderStyle: 'solid',
+                left: coords?.arrowLeft !== undefined ? `${coords.arrowLeft}px` : undefined
+              }}
+            />
+          </span>,
+          document.body
+        )}
     </span>
   )
 }

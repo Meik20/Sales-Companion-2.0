@@ -813,7 +813,6 @@ function SearchContent() {
                   sector="btp"
                   title={`${t('search.btp')} ${highlightCities.btp}`}
                   subtitle={t('search.newCompanies')}
-                  count={86}
                   onClick={() => {
                     applySearchFilters({ sector: 'BTP & Construction', city: highlightCities.btp }, 1)
                   }}
@@ -822,7 +821,6 @@ function SearchContent() {
                   sector="tech"
                   title={`${t('search.tech')} ${highlightCities.tech}`}
                   subtitle={t('search.startupsPme')}
-                  count={94}
                   onClick={() => {
                     applySearchFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech }, 1)
                   }}
@@ -831,7 +829,6 @@ function SearchContent() {
                   sector="agro"
                   title={t('search.agro')}
                   subtitle={countryName}
-                  count={78}
                   onClick={() => {
                     applySearchFilters({ sector: 'Agriculture & Agroalimentaire' }, 1)
                   }}
@@ -840,7 +837,6 @@ function SearchContent() {
                   sector="transport"
                   title={t('search.transport')}
                   subtitle={countryName}
-                  count={124}
                   onClick={() => {
                     applySearchFilters({ sector: 'Transport & Logistique' }, 1)
                   }}

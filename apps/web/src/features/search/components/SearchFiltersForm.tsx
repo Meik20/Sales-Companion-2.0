@@ -62,13 +62,13 @@ const SECTOR_KEYS: Record<string, string> = {
 }
 
 const QUICK_SECTORS = [
-  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid, count: null },
-  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat, count: 86 },
-  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag, count: 142 },
-  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop, count: 94 },
-  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout, count: 78 },
-  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck, count: 124 },
-  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope, count: 46 }
+  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid, count: null as number | null },
+  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat, count: null as number | null },
+  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag, count: null as number | null },
+  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop, count: null as number | null },
+  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout, count: null as number | null },
+  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck, count: null as number | null },
+  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope, count: null as number | null }
 ]
 
 import { findNearestGeoZone } from '@/lib/geo-zones'
