@@ -677,7 +677,12 @@ export default function PipelinePage() {
                             transition: 'all 150ms ease'
                           }}
                         >
-                          <span>{mgr.name || mgr.email}</span>
+                          <span>
+                            {mgr.name || mgr.email}
+                            {isExecutive && ((mgr as any).displaySegment || (mgr as any).segment)
+                              ? ` · ${(mgr as any).displaySegment || (mgr as any).segment}`
+                              : ''}
+                          </span>
                         </button>
                       )
                     })}

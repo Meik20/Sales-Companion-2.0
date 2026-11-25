@@ -138,6 +138,13 @@ export async function GET(request: NextRequest) {
       targetSegment.toLowerCase() === 'direction générale' ||
       targetSegment.toUpperCase() === 'ALL'
 
+    const matchesTargetSegment = (seg?: string | null) => {
+      if (!seg || !targetSegment) return false
+      const s = seg.trim().toLowerCase()
+      const t = targetSegment.trim().toLowerCase()
+      return s === t || s.startsWith(t + ' (') || s.startsWith(t + ' —')
+    }
+
     // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
@@ -145,10 +152,12 @@ export async function GET(request: NextRequest) {
       if (mRole === 'executive') return false
       if (isDirectionSegment) return true
       return (
-        mData.segment === targetSegment ||
+        matchesTargetSegment(mData.segment) ||
+        matchesTargetSegment(mData.displaySegment) ||
         (mData.seniorManagerUid &&
           managersSnap.docs.some(
-            (sm) => sm.id === mData.seniorManagerUid && sm.data().segment === targetSegment
+            (sm) => sm.id === mData.seniorManagerUid &&
+              (matchesTargetSegment(sm.data().segment) || matchesTargetSegment(sm.data().displaySegment))
           ))
       )
     })
@@ -202,7 +211,7 @@ export async function GET(request: NextRequest) {
           if (data.orgCode && data.orgCode !== orgCode) {
             return
           }
-          if (callerSegment && !isDirectionSegment && data.segment && data.segment !== callerSegment) {
+          if (targetSegment && !isDirectionSegment && (data.segment || data.displaySegment) && !matchesTargetSegment(data.segment) && !matchesTargetSegment(data.displaySegment)) {
             return
           }
           if (!seenOrgItemIds.has(d.id)) {
@@ -216,7 +225,7 @@ export async function GET(request: NextRequest) {
           if (data.orgCode && data.orgCode !== orgCode) {
             return
           }
-          if (callerSegment && !isDirectionSegment && data.segment && data.segment !== callerSegment) {
+          if (targetSegment && !isDirectionSegment && (data.segment || data.displaySegment) && !matchesTargetSegment(data.segment) && !matchesTargetSegment(data.displaySegment)) {
             return
           }
           const origId = data.pipelineItemId || d.id.replace(/^client_/, '')

@@ -289,7 +289,7 @@ function RevokeManagerModal({
             >
               {otherManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
               {user && (
@@ -560,7 +560,7 @@ function TransferMemberModal({
             >
               {filteredAvailableManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
             </select>
@@ -968,7 +968,7 @@ function RequestSmRevocationModal({
                 {t('team.orgGovernance.smRevocationModalTitle')}
               </h3>
               <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: '2px 0 0 0' }}>
-                {targetName} ({manager.segment || 'Segment Général'})
+                {targetName} ({(manager as any).displaySegment || manager.segment || 'Segment Général'})
               </p>
             </div>
           </div>
@@ -1139,7 +1139,7 @@ function RequestSmRevocationModal({
               <option value="">{t('team.orgGovernance.smRevocationSuccessorPlaceholder')}</option>
               {availableSuccessors.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
+                  {tm.name || tm.email}{((tm as any).displaySegment || tm.segment) ? ` — ${(tm as any).displaySegment || tm.segment}` : ''}
                 </option>
               ))}
             </select>
@@ -1281,7 +1281,7 @@ function ManagerCard({
                 }}
               >
                 <Tag size={11} style={{ marginRight: 2, flexShrink: 0 }} />
-                {manager.segment}
+                {(manager as any).displaySegment || manager.segment}
               </span>
             )}
             {manager.isCurrent && (

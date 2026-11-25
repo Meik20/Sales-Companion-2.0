@@ -686,7 +686,7 @@ export const en = {
     pipelineByMember: 'Pipeline by Sales Rep',
     teamManagerCount: '{count} Supervisor(s)',
     memberCount: '{count} sales rep(s)',
-    seeAllTMs: 'View all TMs',
+    seeAllTMs: 'View all Supervisors',
     seeAllTeam: 'View entire team',
     allTMs: 'All Supervisors',
     allTeam: 'Entire team',

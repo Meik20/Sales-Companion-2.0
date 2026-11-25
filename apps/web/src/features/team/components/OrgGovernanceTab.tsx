@@ -106,6 +106,8 @@ export function OrgGovernanceTab() {
   const [executiveCustomLabel, setExecutiveCustomLabel] = useState('')
   // Segment personnalisé pour le nouveau Coordinateur
   const [smSegmentInput, setSmSegmentInput] = useState('')
+  // Zone géographique obligatoire pour le nouveau Coordinateur
+  const [smZoneInput, setSmZoneInput] = useState('')
   // Multi-sélection des segments pour le Responsable Exécutif (défaut sur Supervision Globale)
   const [isExecutiveAllSegments, setIsExecutiveAllSegments] = useState(true)
   const [selectedExecutiveSegments, setSelectedExecutiveSegments] = useState<string[]>([])
@@ -142,6 +144,23 @@ export function OrgGovernanceTab() {
     return `${selectedExecutiveSegments.length} ${lang === 'en' ? 'segments selected' : 'segments sélectionnés'}`
   }, [isExecutiveAllSegments, selectedExecutiveSegments, lang])
 
+  // Segments de marché existants dans l'organisation (pour sélection rapide ou réutilisation)
+  const existingOrgSegments = useMemo(() => {
+    const set = new Set<string>()
+    const cur = orgData?.segment || user?.segment
+    if (cur?.trim()) {
+      const base = cur.split('(')[0]?.trim().toUpperCase()
+      if (base) set.add(base)
+    }
+    ;(orgData?.managers || []).forEach((m) => {
+      if (m.isSenior && m.segment?.trim()) {
+        const base = m.segment.split('(')[0]?.trim().toUpperCase()
+        if (base) set.add(base)
+      }
+    })
+    return Array.from(set)
+  }, [orgData?.segment, orgData?.managers, user?.segment])
+
   // Liste dynamique des segments des Coordinateurs existants dans l'organisation
   const coordinatorSegments = useMemo(() => {
     const list: { segment: string; coordinatorName: string; isCurrent: boolean }[] = []
@@ -149,12 +168,15 @@ export function OrgGovernanceTab() {
 
     // Inclure le segment du Coordinateur connecté s'il existe
     const currentSmSegment = orgData?.segment || user?.segment
+    const currentSmZone = (orgData as any)?.zone || (user as any)?.zone
     if (currentSmSegment?.trim()) {
       const clean = currentSmSegment.trim()
-      seenSegments.add(clean.toLowerCase())
+      const base = clean.split('(')[0]?.trim().toUpperCase() || clean
+      seenSegments.add(base.toLowerCase())
+      const zoneSuffix = currentSmZone ? ` (${currentSmZone})` : (clean.includes('(') ? '' : '')
       list.push({
-        segment: clean,
-        coordinatorName: user?.name || user?.email || (lang === 'en' ? 'Me' : 'Moi-même'),
+        segment: base,
+        coordinatorName: `${user?.name || user?.email || (lang === 'en' ? 'Me' : 'Moi-même')}${zoneSuffix}`,
         isCurrent: true
       })
     }
@@ -163,19 +185,18 @@ export function OrgGovernanceTab() {
     (orgData?.managers || []).forEach((m) => {
       if (m.isSenior && m.segment?.trim()) {
         const clean = m.segment.trim()
-        if (!seenSegments.has(clean.toLowerCase())) {
-          seenSegments.add(clean.toLowerCase())
-          list.push({
-            segment: clean,
-            coordinatorName: m.name || m.email,
-            isCurrent: m.isCurrent
-          })
-        }
+        const base = clean.split('(')[0]?.trim().toUpperCase() || clean
+        const zoneSuffix = (m as any).zone ? ` (${(m as any).zone})` : ''
+        list.push({
+          segment: base,
+          coordinatorName: `${m.name || m.email}${zoneSuffix}`,
+          isCurrent: m.isCurrent
+        })
       }
     })
 
     return list
-  }, [orgData?.segment, orgData?.managers, user?.segment, user?.name, user?.email, lang])
+  }, [orgData?.segment, (orgData as any)?.zone, orgData?.managers, user?.segment, (user as any)?.zone, user?.name, user?.email, lang])
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -366,14 +387,25 @@ export function OrgGovernanceTab() {
   }
 
   const generateAndCopySmInvite = async () => {
+    const chosenSegment = smSegmentInput.trim().toUpperCase()
+    const chosenZone = smZoneInput.trim()
+    if (!chosenSegment || !chosenZone) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'Missing fields' : 'Champs obligatoires',
+        description: lang === 'en'
+          ? 'Both market segment and geographic zone are required.'
+          : 'Le segment d\'activité et la zone géographique sont obligatoires.'
+      })
+      return
+    }
     setGeneratingInvite('sm')
     try {
       const token = await user?.getIdToken()
-      const chosenSegment = smSegmentInput.trim() || undefined
       const res = await fetch('/api/team/org/invite-sm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ segment: chosenSegment })
+        body: JSON.stringify({ segment: chosenSegment, zone: chosenZone })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur génération lien Coordinateur')
@@ -383,7 +415,7 @@ export function OrgGovernanceTab() {
       pushToast({
         type: 'success',
         title: t('team.orgGovernance.smInviteSuccessTitle') || 'Lien Coordinateur copié !',
-        description: t('team.orgGovernance.smInviteSuccessDesc') || 'Le lien d\'invitation pour le Coordinateur a été copié dans le presse-papier.'
+        description: `${lang === 'en' ? 'Coordinator invite link for' : 'Lien d\'invitation copié pour'} : ${chosenSegment} (${chosenZone})`
       })
     } catch (err: any) {
       pushToast({
@@ -759,25 +791,56 @@ export function OrgGovernanceTab() {
                         placement="top"
                         content={t('team.orgGovernance.smInviteTooltip')}
                       />
-                      {/* Champ : Définir le segment du Coordinateur */}
-                      <div className="mt-3">
-                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                          Nom du nouveau segment à coordonner
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="ex: Pôle Nord, Grands Comptes, Distribution…"
-                          value={smSegmentInput}
-                          onChange={(e) => setSmSegmentInput(e.target.value)}
-                          maxLength={50}
-                          className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
-                        />
+                      {/* Champs : Segment d'activité (Marché) + Zone géographique (obligatoires) */}
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                            {lang === 'en' ? 'Market segment *' : 'Segment d\'activité (Marché) *'}
+                          </label>
+                          <input
+                            type="text"
+                            list="existing-org-segments"
+                            placeholder={lang === 'en' ? 'e.g. SOHO, SME, CORP…' : 'ex: SOHO, PME, GRANDS COMPTES…'}
+                            value={smSegmentInput}
+                            onChange={(e) => setSmSegmentInput(e.target.value)}
+                            maxLength={40}
+                            className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40 uppercase"
+                          />
+                          {existingOrgSegments.length > 0 && (
+                            <datalist id="existing-org-segments">
+                              {existingOrgSegments.map((seg) => (
+                                <option key={seg} value={seg} />
+                              ))}
+                            </datalist>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                            {lang === 'en' ? 'Geographic zone *' : 'Zone géographique *'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={lang === 'en' ? 'e.g. Littoral, Centre, West…' : 'ex: Littoral, Centre, Ouest…'}
+                            value={smZoneInput}
+                            onChange={(e) => setSmZoneInput(e.target.value)}
+                            maxLength={40}
+                            className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                          />
+                        </div>
                       </div>
+                      {(smSegmentInput.trim() || smZoneInput.trim()) && (
+                        <p className="mt-1.5 text-[11px] text-violet-700 dark:text-violet-300 font-medium">
+                          {lang === 'en' ? 'Coordinator label:' : 'Libellé Coordinateur :'}{' '}
+                          <span className="font-bold">
+                            {smSegmentInput.trim().toUpperCase() || '—'} ({smZoneInput.trim() || '—'})
+                          </span>
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"
                       onClick={() => void generateAndCopySmInvite()}
-                      disabled={generatingInvite === 'sm'}
+                      disabled={generatingInvite === 'sm' || !smSegmentInput.trim() || !smZoneInput.trim()}
                       className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
                     >
                       {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}

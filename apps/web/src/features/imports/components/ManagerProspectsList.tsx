@@ -115,17 +115,17 @@ function getProspectAgingStatus(
         if (!isNaN(deadline.getTime())) {
           if (now > deadline.getTime()) {
             return {
-              label: isEn ? 'Transfer overdue' : 'Délai TM dépassé',
+              label: isEn ? 'Supervisor overdue' : 'Délai Superviseur dépassé',
               color: '#dc2626',
-              subtext: isEn ? 'Awaiting TM action' : 'En attente du TM'
+              subtext: isEn ? 'Awaiting Supervisor' : 'En attente du Superviseur'
             }
           }
           const hoursLeft = (deadline.getTime() - now) / (1000 * 3600)
           if (hoursLeft <= 24) {
             return {
-              label: isEn ? 'Transfer urgent' : 'Urgent (TM)',
+              label: isEn ? 'Urgent (Supervisor)' : 'Urgent (Superviseur)',
               color: '#ea580c',
-              subtext: isEn ? '< 24h TM deadline' : '< 24h restant (TM)'
+              subtext: isEn ? '< 24h Supervisor deadline' : '< 24h restant (Superviseur)'
             }
           }
         }
@@ -1156,7 +1156,7 @@ export function ManagerProspectsList({
             >
               <Clock size={12} style={{ color: '#3b82f6' }} />
               <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
-                {lang === 'en' ? 'TM deadline:' : 'Échéance TM :'}
+                {lang === 'en' ? 'Supervisor deadline:' : 'Échéance Superviseur :'}
               </span>
               <select
                 value={transferDeadlineOption}

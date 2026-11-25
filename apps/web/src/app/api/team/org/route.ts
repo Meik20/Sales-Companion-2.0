@@ -203,6 +203,9 @@ export async function GET(request: NextRequest) {
             (mData.seniorManagerUid ? smSegmentMap.get(mData.seniorManagerUid) : null) ||
             (resolvedOrgRole !== 'senior_manager' && userData.segment ? userData.segment : null)
 
+          const zone = mData.zone || null
+          const displaySegment = mData.displaySegment || (zone && resolvedSegment ? `${resolvedSegment} (${zone})` : resolvedSegment)
+
           return {
             uid: d.id,
             name: mData.displayName || mData.name || mData.email,
@@ -210,6 +213,8 @@ export async function GET(request: NextRequest) {
             phone: mData.phone || null,
             orgRole: resolvedOrgRole,
             segment: resolvedSegment || null,
+            zone: zone || null,
+            displaySegment: displaySegment || null,
             seniorManagerUid: mData.seniorManagerUid || null,
             isCurrent: d.id === managerUid,
             isSenior: resolvedOrgRole === 'senior_manager',
@@ -422,6 +427,10 @@ export async function PATCH(request: NextRequest) {
       if (inviteData.type === 'senior_manager') {
         updates.orgRole = 'senior_manager'
         updates.segment = inviteData.segment || body.segment?.trim() || null
+        if (inviteData.zone) {
+          updates.zone = inviteData.zone
+        }
+        updates.displaySegment = inviteData.displaySegment || (updates.zone ? `${updates.segment} (${updates.zone})` : updates.segment)
         updates.seniorManagerUid = null
       } else if (inviteData.type === 'executive') {
         updates.orgRole = 'executive'
@@ -442,6 +451,12 @@ export async function PATCH(request: NextRequest) {
         updates.orgRole = 'team_manager'
         // RÈGLE ARCHITECTURALE : segment exclusivement issu du jeton d'invitation — jamais de fallback hardcodé
         updates.segment = inviteData.segment || null
+        if (inviteData.zone) {
+          updates.zone = inviteData.zone
+        }
+        if (inviteData.displaySegment) {
+          updates.displaySegment = inviteData.displaySegment
+        }
         updates.seniorManagerUid =
           inviteData.seniorManagerUid || inviteData.createdByUid || null
       }

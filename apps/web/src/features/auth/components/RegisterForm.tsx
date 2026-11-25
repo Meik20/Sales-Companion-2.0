@@ -92,6 +92,8 @@ export function RegisterForm() {
     orgCode: string
     companyName: string
     segment?: string | null
+    zone?: string | null
+    displaySegment?: string | null
     segments?: string[]
     seniorManagerName?: string | null
     seniorManagerUid?: string | null
@@ -131,7 +133,7 @@ export function RegisterForm() {
           // RÈGLE UNIVERSELLE : Tout compte invité (Coordinateur, Superviseur, Exécutif)
           // s'aligne strictement sur le segment renseigné dans le lien d'invitation
           if (data.segment) {
-            setSegment(data.segment)
+            setSegment(data.displaySegment || (data.zone ? `${data.segment} (${data.zone})` : data.segment))
           }
         } else {
           setError(data.error || "Lien d'invitation invalide ou expiré.")
@@ -407,7 +409,7 @@ export function RegisterForm() {
           <div className="flex-1">
             <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
-                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur — Segment : {orgInviteInfo.segment || 'Nouveau Segment'}</>
+                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur — Segment : {orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment) || 'Nouveau Segment'}</>
               ) : orgInviteInfo.type === 'executive' ? (
                 <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ' — Supervision Globale (Tous les segments)'}</>
               ) : (
@@ -430,7 +432,7 @@ export function RegisterForm() {
               ) : orgInviteInfo.segment ? (
                 <div className="flex items-center gap-1 mt-0.5">
                   <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
+                  Segment rattaché : <strong>{orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment)}</strong>
                 </div>
               ) : orgInviteInfo.type === 'executive' ? (
                 <div className="flex items-center gap-1 mt-0.5">
@@ -764,15 +766,15 @@ export function RegisterForm() {
                         : (segment || 'Tous les segments (Supervision Globale)')
                       : segment
                   }
-                  readOnly={Boolean(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive')}
+                  readOnly={Boolean(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive' || (orgInviteInfo?.type === 'senior_manager' && orgInviteInfo.segment))}
                   onChange={(e) => setSegment(e.target.value)}
                   className={
-                    orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive'
+                    orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive' || (orgInviteInfo?.type === 'senior_manager' && orgInviteInfo.segment)
                       ? 'bg-muted/40 cursor-not-allowed opacity-90 pl-8'
                       : ''
                   }
                 />
-                {(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive') && (
+                {(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive' || (orgInviteInfo?.type === 'senior_manager' && orgInviteInfo.segment)) && (
                   <Lock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 )}
               </div>

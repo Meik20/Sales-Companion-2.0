@@ -73,6 +73,8 @@ export async function GET(request: NextRequest) {
       orgCode: data.orgCode,
       companyName: data.companyName,
       segment: data.segment || null,
+      zone: data.zone || null,
+      displaySegment: data.displaySegment || (data.zone ? `${data.segment} (${data.zone})` : data.segment || null),
       segments: Array.isArray(data.segments) ? data.segments : data.segment ? [data.segment] : [],
       seniorManagerName: data.createdByName || null,
       seniorManagerUid: data.seniorManagerUid || data.createdByUid || null,
@@ -198,10 +200,15 @@ export async function POST(request: NextRequest) {
     let assignedSegment: string | null = null
     let assignedSegments: string[] = []
 
+    let assignedZone: string | null = null
+    let displaySegment: string | null = null
+
     if (inviteType === 'team_manager') {
       // Le Superviseur hérite du segment de son Coordinateur créateur si absent du body
       const tmSeg = typeof body.segment === 'string' ? body.segment.trim() : null
       assignedSegment = tmSeg || creatorSegment || null
+      assignedZone = typeof body.zone === 'string' ? body.zone.trim() : (userData.zone || null)
+      displaySegment = assignedZone && assignedSegment ? `${assignedSegment} (${assignedZone})` : assignedSegment
       if (assignedSegment) assignedSegments = [assignedSegment]
     } else if (inviteType === 'executive') {
       // L'Exécutif peut avoir plusieurs segments ou aucun (Supervision globale si vide ou 'ALL')
@@ -214,10 +221,27 @@ export async function POST(request: NextRequest) {
         assignedSegments = [seg]
       }
     } else if (inviteType === 'senior_manager') {
-      // Le Coordinateur reçoit le segment défini par le SM1 dans le formulaire d'invitation
+      // Le Coordinateur reçoit le segment et la zone définis par le SM1
       const smSeg = typeof body.segment === 'string' ? body.segment.trim() : null
-      assignedSegment = smSeg || null
-      if (assignedSegment) assignedSegments = [assignedSegment]
+      const smZone = typeof body.zone === 'string' ? body.zone.trim() : null
+
+      if (!smSeg) {
+        return NextResponse.json(
+          { error: 'Le segment d\'activité est obligatoire pour inviter un Coordinateur.' },
+          { status: 400 }
+        )
+      }
+      if (!smZone) {
+        return NextResponse.json(
+          { error: 'La zone géographique est obligatoire pour inviter un Coordinateur (ex: Littoral, Centre, Ouest...).' },
+          { status: 400 }
+        )
+      }
+
+      assignedSegment = smSeg
+      assignedZone = smZone
+      displaySegment = `${smSeg} (${smZone})`
+      assignedSegments = [smSeg]
     }
 
     // Générer un token sécurisé
@@ -235,6 +259,8 @@ export async function POST(request: NextRequest) {
         userData.orgRole === 'senior_manager' ? callerUid : userData.seniorManagerUid || callerUid,
       segment: assignedSegment,
       segments: assignedSegments,
+      zone: assignedZone,
+      displaySegment: displaySegment || assignedSegment,
       // Libellé personnalisé pour le rôle executive (ex: "Directeur Général", "PDG")
       customRoleLabel: inviteType === 'executive' ? (body.customRoleLabel?.trim() || null) : null,
       used: false,
@@ -257,6 +283,8 @@ export async function POST(request: NextRequest) {
       inviteType,
       inviteUrl,
       segment: assignedSegment,
+      zone: assignedZone,
+      displaySegment: displaySegment || assignedSegment,
       orgCode,
       expiresAt: expiresAt.toISOString()
     })

@@ -690,7 +690,7 @@ export const fr = {
     pipelineByMember: 'Pipeline par commercial',
     teamManagerCount: '{count} Superviseur(s)',
     memberCount: '{count} commercial(aux)',
-    seeAllTMs: 'Voir tous les TMs',
+    seeAllTMs: 'Voir tous les Superviseurs',
     seeAllTeam: "Voir toute l'équipe",
     allTMs: 'Tous les Superviseurs',
     allTeam: "Toute l'équipe",

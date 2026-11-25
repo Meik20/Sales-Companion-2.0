@@ -118,8 +118,15 @@ export async function fetchOrgConsolidatedPipeline(
 
   // 3. Appliquer le filtre manager si demandé
   // Si aucun filtre spécifique n'est passé et qu'un segment spécifique est demandé :
-  // Le pipeline consolidé isole strictement les Coordinateurs (Senior Managers) et Superviseurs de ce segment.
+  // Le pipeline consolidé regroupe TOUS les Coordinateurs et Superviseurs rattachés à ce segment (toutes zones confondues).
   let targetManagerUids = orgManagerUids
+  const matchesSegment = (seg?: string | null) => {
+    if (!seg || !callerSegment) return false
+    const s = seg.trim().toLowerCase()
+    const c = callerSegment.trim().toLowerCase()
+    return s === c || s.startsWith(c + ' (') || s.startsWith(c + ' —')
+  }
+
   if (callerSegment && !filterManagerUid) {
     const isDirectionSegment =
       callerSegment.toLowerCase() === 'direction' ||
@@ -129,7 +136,7 @@ export async function fetchOrgConsolidatedPipeline(
       const segmentSmDocs = filteredManagersDocs.filter(
         (d) =>
           (d.data().orgRole || 'team_manager') === 'senior_manager' &&
-          d.data().segment === callerSegment
+          (matchesSegment(d.data().segment) || matchesSegment(d.data().displaySegment))
       )
       const segmentSmUids = new Set(segmentSmDocs.map((d) => d.id))
       const relevantUids = filteredManagersDocs
@@ -137,7 +144,8 @@ export async function fetchOrgConsolidatedPipeline(
           (d) =>
             segmentSmUids.has(d.id) ||
             (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid)) ||
-            d.data().segment === callerSegment
+            matchesSegment(d.data().segment) ||
+            matchesSegment(d.data().displaySegment)
         )
         .map((d) => d.id)
       targetManagerUids = relevantUids
@@ -335,8 +343,12 @@ export async function fetchOrgConsolidatedPipeline(
         callerSegment?.toLowerCase() === 'direction' ||
         callerSegment?.toLowerCase() === 'direction générale' ||
         callerSegment?.toUpperCase() === 'ALL'
-      if (callerSegment && !isDirectionSegment && d.data().segment && d.data().segment !== callerSegment)
-        return false
+      if (callerSegment && !isDirectionSegment) {
+        const seg = d.data().segment
+        const disp = d.data().displaySegment
+        const matches = matchesSegment(seg) || matchesSegment(disp)
+        if (!matches) return false
+      }
       return true
     }
     return mRole !== 'senior_manager'
@@ -355,11 +367,17 @@ export async function fetchOrgConsolidatedPipeline(
       })
       : allItems.filter((i) => i.managerUid === d.id)
 
+    const zone = data.zone || null
+    const displaySegment = data.displaySegment || (zone && data.segment ? `${data.segment} (${zone})` : (data.segment || null))
+
     return {
       uid: d.id,
       name: data.displayName || data.name || data.email || d.id,
       email: data.email || '',
       orgRole: mRole,
+      segment: data.segment || null,
+      zone: zone,
+      displaySegment: displaySegment,
       isSenior: isSm,
       isCurrent: false,
       seniorManagerUid: data.seniorManagerUid || null,
