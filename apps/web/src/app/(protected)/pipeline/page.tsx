@@ -837,9 +837,7 @@ export default function PipelinePage() {
                 supervisorsCount={
                   selectedManager
                     ? (selectedManager.isSenior
-                        ? (orgPipelineQuery.data?.managers || []).filter(
-                            (m) => !m.isSenior && (m as any).seniorManagerUid === selectedManager.uid
-                          ).length
+                        ? (selectedManager.stats?.supervisorsCount ?? 0)
                         : 0)
                     : orgPipelineQuery.data?.totalSupervisorsCount
                 }

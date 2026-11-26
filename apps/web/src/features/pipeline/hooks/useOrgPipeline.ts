@@ -39,6 +39,7 @@ export interface OrgManagerStats {
     conclue: number
     total: number
     salespeopleCount?: number
+    supervisorsCount?: number
   }
 }
 

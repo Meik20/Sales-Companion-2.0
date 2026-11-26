@@ -480,6 +480,13 @@ export async function fetchOrgConsolidatedPipeline(
             managerItems.filter((i) => i.status === 'other').length
           )
         },
+        supervisorsCount: isSm
+          ? filteredManagersDocs.filter(
+              (tm) =>
+                (tm.data().orgRole || 'team_manager') === 'team_manager' &&
+                tm.data().seniorManagerUid === d.id
+            ).length
+          : 0,
         salespeopleCount: isSm
           ? filteredManagersDocs
             .filter((tm) => tm.data().seniorManagerUid === d.id)
