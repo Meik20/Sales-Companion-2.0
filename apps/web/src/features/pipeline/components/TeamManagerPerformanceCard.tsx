@@ -345,6 +345,25 @@ export function TeamManagerPerformanceCard({
                       ? (lang === 'en' ? 'Coordinator' : 'Coordinateur')
                       : (t('sidebar.teamManagerRole') || (lang === 'en' ? 'Supervisor' : 'Superviseur')))}
               </span>
+              {!isGlobal && manager?.isSenior && Array.isArray(manager.interimSegments) && manager.interimSegments.length > 0 && (
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    padding: '2px 9px',
+                    borderRadius: 12,
+                    background: 'rgba(245, 158, 11, 0.14)',
+                    color: '#d97706',
+                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                    fontWeight: 700
+                  }}
+                >
+                  {lang === 'en' ? 'Interim:' : 'Intérim :'}{' '}
+                  {manager.interimSegments
+                    .map((it) => it.displaySegment || (it.zone && it.segment ? `${it.segment} (${it.zone})` : it.segment))
+                    .filter(Boolean)
+                    .join(', ')}
+                </span>
+              )}
               <InfoTooltip
                 content={
                   isGlobal

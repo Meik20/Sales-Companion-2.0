@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateServerRequest, assertSeniorManagerOrExecutive, AuthGuardError } from '@/server/guards/auth.guard'
 import { fetchOrgConsolidatedPipeline } from '@/server/services/pipeline-org.service'
+import { resolveCallerSegmentAccess } from '@/lib/org-scope'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,52 +27,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '500', 10)
 
     // Vérification et isolation stricte du segment pour l'Exécutif et pour le Coordinateur (titulaire vs intérim)
-    let effectiveSegment = requestedSegment || session.segment
-    if (session.orgRole === 'executive') {
-      const allowedSegments = Array.isArray(session.segments) && session.segments.length > 0
-        ? session.segments
-        : session.segment && session.segment.toUpperCase() !== 'ALL'
-          ? [session.segment]
-          : null // null = Supervision globale (tous les segments)
-
-      if (allowedSegments && allowedSegments.length > 0) {
-        if (requestedSegment) {
-          if (!allowedSegments.includes(requestedSegment)) {
-            return NextResponse.json(
-              { error: `Accès non autorisé au segment « ${requestedSegment} »` },
-              { status: 403 }
-            )
-          }
-          effectiveSegment = requestedSegment
-        } else {
-          // Si aucun segment spécifique n'est demandé par l'exécutif, on se positionne sur son premier segment autorisé
-          effectiveSegment = allowedSegments[0]
-        }
-      }
-    } else if (session.orgRole === 'senior_manager') {
-      // Pour le Coordinateur : son segment titulaire + les segments dont il a l'intérim
-      const titularSegment = session.segment
-      const interimList = Array.isArray(session.interimSegments) ? session.interimSegments : []
-      const interimSegNames = interimList.map((item) => item.segment).filter(Boolean)
-      const allowedSegments = [titularSegment, ...interimSegNames].filter(Boolean) as string[]
-
-      if (requestedSegment && allowedSegments.length > 0) {
-        const matchesAllowed = allowedSegments.some((seg) => {
-          const s = seg.toLowerCase().trim()
-          const r = requestedSegment.toLowerCase().trim()
-          return s === r || s.startsWith(r + ' (') || r.startsWith(s + ' (')
-        })
-        if (!matchesAllowed) {
-          return NextResponse.json(
-            { error: `Accès non autorisé au segment « ${requestedSegment} »` },
-            { status: 403 }
-          )
-        }
-        effectiveSegment = requestedSegment
-      } else {
-        effectiveSegment = titularSegment
-      }
+    const segmentAccess = resolveCallerSegmentAccess({
+      callerOrgRole: session.orgRole || 'team_manager',
+      callerSegment: session.segment ?? null,
+      callerSegments: Array.isArray(session.segments) ? session.segments : null,
+      callerInterimSegments: Array.isArray(session.interimSegments) ? session.interimSegments : null,
+      requestedSegment
+    })
+    if (!segmentAccess.ok) {
+      return NextResponse.json({ error: segmentAccess.error }, { status: segmentAccess.status })
     }
+    const effectiveSegment = segmentAccess.targetSegment
 
     // 3. Appel du service métier pur
     const result = await fetchOrgConsolidatedPipeline({

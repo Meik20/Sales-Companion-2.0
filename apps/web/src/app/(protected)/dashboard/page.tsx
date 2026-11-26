@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -411,7 +411,8 @@ export default function DashboardPage() {
     const lastDay = new Date(Number(yStr), Number(mStr), 0).getDate()
     void exportPerformance({
       from: `${yStr}-${mStr}-01`,
-      to: `${yStr}-${mStr}-${String(lastDay).padStart(2, '0')}`
+      to: `${yStr}-${mStr}-${String(lastDay).padStart(2, '0')}`,
+      segment: activeSegment
     })
   }
 

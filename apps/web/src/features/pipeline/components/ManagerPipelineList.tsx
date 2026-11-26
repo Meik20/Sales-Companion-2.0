@@ -119,7 +119,8 @@ type Props = {
   showTargets?: boolean
   enableArchive?: boolean  // N'activer que pour le pipeline Team Manager
   isOrgView?: boolean      // Vue Senior Manager : regrouper par TM au lieu de par commercial
-  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean }[]
+  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean; orgRole?: string }[]
+  observedSegment?: string
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -1465,16 +1466,18 @@ function buildPrecisePeriodLabel(fromDateStr: string, toDateStr: string, fallbac
 function ExportButton({
   members,
   managers,
-  isOrgView = false
+  isOrgView = false,
+  observedSegment
 }: {
   members?: Member[]
-  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean }[]
+  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean; orgRole?: string }[]
   isOrgView?: boolean
+  observedSegment?: string
 }) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const { exportPerformance, loading } = useExportTeamPerformance()
-  const { data: orgReportData } = useOrgReport()
+  const { data: orgReportData } = useOrgReport(observedSegment ? { segment: observedSegment } : undefined)
   const { pushToast } = useToast()
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
@@ -1492,6 +1495,7 @@ function ExportButton({
       const params = new URLSearchParams()
       if (from) params.set('from', from)
       if (to) params.set('to', to)
+      if (observedSegment) params.set('segment', observedSegment)
 
       const res = await fetch(`/api/reporting/org?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -1528,7 +1532,7 @@ function ExportButton({
     }
   }
 
-  const activeTeamManagers = managers?.filter((m) => !m.isSenior) ?? []
+  const activeTeamManagers = managers?.filter((m) => !m.isSenior && m.orgRole !== 'executive') ?? []
 
   const inputStyle: React.CSSProperties = {
     background: 'var(--secondary, #1e2a3b)',
@@ -1767,6 +1771,7 @@ function ExportButton({
                       await exportPerformance({
                         managerId: isOrgView ? (selectedId || undefined) : undefined,
                         memberId: !isOrgView ? (selectedId || undefined) : undefined,
+                        segment: isOrgView ? observedSegment : undefined,
                         from: from || undefined,
                         to: to || undefined
                       })
@@ -1796,7 +1801,7 @@ function ExportButton({
   )
 }
 
-export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false, managers }: Props) {
+export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false, managers, observedSegment }: Props) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const deleteMutation = useDeletePipelineItem()
@@ -2997,7 +3002,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           )}
         </button>
         {showTargets && <TargetsButton members={members} />}
-        <ExportButton members={members} managers={managers} isOrgView={isOrgView} />
+        <ExportButton members={members} managers={managers} isOrgView={isOrgView} observedSegment={observedSegment} />
         {enableArchive && <ArchivesDrawer />}
       </div>
 

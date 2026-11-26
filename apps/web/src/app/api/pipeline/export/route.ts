@@ -1,6 +1,11 @@
-﻿export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import {
+  resolveCallerSegmentAccess,
+  resolveScopedOrgManagers,
+  type OrgManagerScopeRecord
+} from '@/lib/org-scope'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -37,6 +42,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId') || null
     const managerId = searchParams.get('managerId') || null
+    const requestedSegment = searchParams.get('segment') || null
     const fromDate = searchParams.get('from') ? new Date(searchParams.get('from')!) : null
     const toDate = searchParams.get('to') ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
 
@@ -375,15 +381,32 @@ export async function GET(request: NextRequest) {
 
     const callerOrgRole: string = callerData?.orgRole ?? 'team_manager'
     const isSeniorManager = callerOrgRole === 'senior_manager'
+    const isExecutive = callerOrgRole === 'executive'
+    const isOrgView = isSeniorManager || isExecutive
 
     // ── Résolution du/des managerUid(s) actif(s) ──────────────────────────
-    // • Team Manager  → uniquement son propre UID
-    // • Senior Manager → les Team Managers de l'organisation (ou un TM précis si managerId)
-    let orgManagerUids: string[] = [callerUid] // par défaut : soi-même
+    // • Team Manager   → uniquement son propre UID
+    // • Senior Manager → uniquement ses Superviseurs (ou segment d'intérim autorisé)
+    // • Executive      → Superviseurs du segment observé (ou toute l'organisation si Direction/ALL)
+    let orgManagerUids: string[] = isOrgView ? [] : [callerUid]
     let exportScopeLabel = 'ÉQUIPE' // libellé titre rapport
     const tmMap = new Map<string, { uid: string; name: string; email: string }>()
 
-    if (isSeniorManager) {
+    if (isOrgView) {
+      const access = resolveCallerSegmentAccess({
+        callerOrgRole,
+        callerSegment: callerData?.segment ?? null,
+        callerSegments: Array.isArray(callerData?.segments) ? callerData.segments : null,
+        callerInterimSegments: Array.isArray(callerData?.interimSegments)
+          ? callerData.interimSegments
+          : null,
+        requestedSegment
+      })
+
+      if (!access.ok) {
+        return NextResponse.json({ message: access.error }, { status: access.status })
+      }
+
       const orgCode: string = callerData?.orgCode ?? ''
       if (orgCode) {
         const orgManagersSnap = await adminDb
@@ -391,27 +414,51 @@ export async function GET(request: NextRequest) {
           .where('orgCode', '==', orgCode)
           .where('role', '==', 'manager')
           .get()
-        // Référencer tous les Team Managers du segment (exclure le Senior Manager)
-        orgManagersSnap.docs.forEach((d) => {
+
+        const allOrgManagers: OrgManagerScopeRecord[] = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
-          if ((mData.orgRole || 'team_manager') !== 'senior_manager') {
-            tmMap.set(d.id, {
-              uid: d.id,
-              name: mData.name || mData.displayName || mData.email || 'Superviseur',
-              email: mData.email || ''
-            })
+          return {
+            uid: d.id,
+            name: mData.name || mData.displayName || mData.email || 'Superviseur',
+            email: mData.email || '',
+            orgRole: mData.orgRole || 'team_manager',
+            segment: mData.segment || null,
+            displaySegment: mData.displaySegment || null,
+            seniorManagerUid: mData.seniorManagerUid || null
           }
         })
 
-        if (managerId && tmMap.has(managerId)) {
-          orgManagerUids = [managerId]
-          exportScopeLabel = `TM – ${tmMap.get(managerId)!.name.toUpperCase()}`
+        const scoped = resolveScopedOrgManagers({
+          allOrgManagers,
+          callerUid,
+          callerOrgRole,
+          targetSegment: access.targetSegment,
+          isDirectionScope: access.isDirectionScope,
+          isObservingInterim: access.isObservingInterim,
+          filterManagerId: managerId
+        })
+
+        scoped.teamManagers.forEach((tm) => {
+          tmMap.set(tm.uid, { uid: tm.uid, name: tm.name, email: tm.email })
+        })
+
+        orgManagerUids = scoped.effectiveTeamManagerUids
+
+        if (scoped.selectedFilterManager) {
+          const prefix =
+            scoped.selectedFilterManager.orgRole === 'senior_manager' ? 'COORD.' : 'SUPERVISEUR'
+          exportScopeLabel = `${prefix} – ${scoped.selectedFilterManager.name.toUpperCase()}`
+        } else if (isExecutive) {
+          exportScopeLabel = access.isDirectionScope
+            ? 'ORGANISATION'
+            : `SEGMENT – ${(access.targetSegment || '').toUpperCase()}`
         } else {
-          orgManagerUids = Array.from(tmMap.keys())
-          exportScopeLabel = 'ORGANISATION'
+          exportScopeLabel =
+            access.isObservingInterim && access.targetSegment
+              ? `INTÉRIM – ${access.targetSegment.toUpperCase()}`
+              : 'ÉQUIPES'
         }
       }
-      // Si aucun Team Manager trouvé, on garde [callerUid] pour éviter un export vide silencieux
     }
 
     // Pour la logique qui suit, on conserve `managerUid` comme référence principale
@@ -713,7 +760,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Pipeline personnel du Team Manager uniquement (pipeline actif + clients)
-    if (!isSeniorManager) {
+    if (!isOrgView) {
       const [ownSnap, ownClientsSnap] = await Promise.all([
         adminDb.collection('pipeline').where('userId', '==', managerUid).get(),
         adminDb.collection('clients').where('managerUid', '==', managerUid).get()
@@ -752,7 +799,7 @@ export async function GET(request: NextRequest) {
     // ── Filters ──────────────────────────────────────────────────────────────
     let filtered = allItems
 
-    if (!isSeniorManager) {
+    if (!isOrgView) {
       // Pour le Team Manager : n'exporter que les opportunités assignées aux commerciaux
       filtered = filtered.filter((i) => {
         if (!i.assignedTo) return false
@@ -820,7 +867,7 @@ export async function GET(request: NextRequest) {
 
     const byMember: Record<string, MemberStat> = {}
 
-    if (isSeniorManager) {
+    if (isOrgView) {
       // Récupérer les objectifs consolidés de chaque Team Manager
       const tmTargetsMap = new Map<
         string,
@@ -988,7 +1035,7 @@ export async function GET(request: NextRequest) {
     // ── Objectif Global du pipeline consolidé ─────────────────────────────────
     let globalTargetVolume: number | null = null
     let globalTargetValue: number | null = null
-    if (isSeniorManager) {
+    if (isOrgView) {
       Object.values(byMember).forEach((s) => {
         if (s.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + s.targetVolume
         if (s.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + s.targetValue
@@ -1067,7 +1114,7 @@ export async function GET(request: NextRequest) {
 
     // Colonnes header (ligne 4) — SANS "Access ID"
     const summaryHeaders = [
-      isSeniorManager ? 'Superviseur' : 'Membre',
+      isOrgView ? 'Superviseur' : 'Membre',
       'Période',
       'Total Leads',
       'Prospection',
@@ -1206,8 +1253,8 @@ export async function GET(request: NextRequest) {
       return null
     })()
 
-    const totalLabel = isSeniorManager
-      ? (managerId ? `TOTAL ${exportScopeLabel}` : 'TOTAL ORGANISATION')
+    const totalLabel = isOrgView
+      ? (managerId ? `TOTAL ${exportScopeLabel}` : `TOTAL ${exportScopeLabel}`)
       : (memberId ? 'TOTAL' : `TOTAL ${exportScopeLabel}`)
 
     const totalCells: (string | number | null)[] = [
@@ -1275,7 +1322,7 @@ export async function GET(request: NextRequest) {
       pageSetup: { fitToPage: true, orientation: 'landscape' }
     })
 
-    const detailHeaders = isSeniorManager
+    const detailHeaders = isOrgView
       ? [
           'Entreprise',
           'Statut',
@@ -1305,7 +1352,7 @@ export async function GET(request: NextRequest) {
         ]
 
     // Titre
-    detailSheet.mergeCells(isSeniorManager ? 'A1:L1' : 'A1:K1')
+    detailSheet.mergeCells(isOrgView ? 'A1:L1' : 'A1:K1')
     const detailTitleCell = detailSheet.getCell('A1')
     detailTitleCell.value = '📋 DÉTAIL DES PROSPECTS'
     detailTitleCell.font = {
@@ -1344,7 +1391,7 @@ export async function GET(request: NextRequest) {
         name = m?.name || 'Commercial'
       }
       if (!name || uid === '__manager__') {
-        name = isSeniorManager ? 'Non assigné' : 'Commercial'
+        name = isOrgView ? 'Non assigné' : 'Commercial'
       }
 
       const row = detailSheet.getRow(3 + rowIdx)
@@ -1355,7 +1402,7 @@ export async function GET(request: NextRequest) {
       const statusColor =
         statusNorm === 'Conclue' ? 'D5F5E3' : statusNorm === 'Négociation' ? 'FEF9E7' : 'EBF5FB'
 
-      const rowData = isSeniorManager
+      const rowData = isOrgView
         ? [
             item.companyName ?? '',
             statusNorm,
@@ -1396,7 +1443,7 @@ export async function GET(request: NextRequest) {
         cell.alignment = {
           vertical: 'middle',
           horizontal: colIdx === 2 ? 'right' : 'left',
-          wrapText: colIdx === (isSeniorManager ? 9 : 8) // notes
+          wrapText: colIdx === (isOrgView ? 9 : 8) // notes
         }
         if (colIdx === 2 && typeof val === 'number') cell.numFmt = '#,##0'
       })
@@ -1404,7 +1451,7 @@ export async function GET(request: NextRequest) {
       row.height = 20
     })
 
-    detailSheet.columns = isSeniorManager
+    detailSheet.columns = isOrgView
       ? [
           { width: 24 }, // Entreprise
           { width: 14 }, // Statut

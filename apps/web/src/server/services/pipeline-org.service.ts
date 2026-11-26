@@ -18,6 +18,7 @@ import {
   type CanonicalPipelineStatus
 } from '@/lib/pipeline-metrics'
 import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
+import { matchesOrgSegment, isDirectionSegmentName } from '@/lib/org-scope'
 import { COUNTRY_CURRENCIES, type CountryCode } from '@sales-companion/shared'
 
 export interface PipelineStatusBucket {
@@ -122,30 +123,33 @@ export async function fetchOrgConsolidatedPipeline(
   // - Pour un Manager Exécutif : agrégation consolidée par segment (tous Coordinateurs et Superviseurs du segment).
   let targetManagerUids = orgManagerUids
   const isCallerExecutive = callerOrgRole === 'executive'
-  const matchesSegment = (seg?: string | null) => {
-    if (!seg || !callerSegment) return false
-    const s = seg.trim().toLowerCase()
-    const c = callerSegment.trim().toLowerCase()
-    return s === c || s.startsWith(c + ' (') || s.startsWith(c + ' –')
+  const getDocDisplaySegment = (dData?: FirebaseFirestore.DocumentData | null): string | null => {
+    if (!dData) return null
+    if (dData.displaySegment && typeof dData.displaySegment === 'string') return dData.displaySegment
+    if (dData.zone && dData.segment) return `${dData.segment} (${dData.zone})`
+    return dData.segment || null
   }
+  const matchesSegment = (seg?: string | null) => matchesOrgSegment(seg, callerSegment)
+  const callerDocData = filteredManagersDocs.find((d) => d.id === callerUid)?.data()
+  const callerDisplaySegment = getDocDisplaySegment(callerDocData) ?? managersMap[callerUid]?.segment ?? null
+  const isObservingInterim = Boolean(
+    !isCallerExecutive &&
+    callerSegment &&
+    callerDisplaySegment &&
+    !matchesOrgSegment(callerDisplaySegment, callerSegment)
+  )
 
   if (!isCallerExecutive) {
-    // Si le Coordinateur observe un segment précis (titulaire ou intérimaire)
-    const isObservingInterim = callerSegment && (!matchesSegment(managersMap[callerUid]?.segment))
     if (isObservingInterim) {
-      // Intérim : cibler les Superviseurs rattachés à ce segment d'intérim
+      // Intérim : cibler UNIQUEMENT les Superviseurs rattachés à ce segment d'intérim (sans mélanger le titulaire)
       const interimScopeUids = filteredManagersDocs
         .filter((d) => {
           const dData = d.data()
-          return (
-            d.id === callerUid ||
-            dData.seniorManagerUid === callerUid ||
-            matchesSegment(dData.segment) ||
-            matchesSegment(dData.displaySegment)
-          )
+          if ((dData.orgRole || 'team_manager') === 'executive') return false
+          return matchesSegment(getDocDisplaySegment(dData))
         })
         .map((d) => d.id)
-      targetManagerUids = interimScopeUids.length > 0 ? interimScopeUids : [callerUid]
+      targetManagerUids = interimScopeUids
     } else {
       // Titulaire : ses Superviseurs directs et lui-même
       const ownScopeUids = filteredManagersDocs
@@ -154,25 +158,25 @@ export async function fetchOrgConsolidatedPipeline(
       targetManagerUids = ownScopeUids.length > 0 ? ownScopeUids : [callerUid]
     }
   } else if (callerSegment && !filterManagerUid) {
-    const isDirectionSegment =
-      callerSegment.toLowerCase() === 'direction' ||
-      callerSegment.toLowerCase() === 'direction générale' ||
-      callerSegment.toUpperCase() === 'ALL'
-    if (!isDirectionSegment) {
-      const segmentSmDocs = filteredManagersDocs.filter(
-        (d) =>
-          (d.data().orgRole || 'team_manager') === 'senior_manager' &&
-          (matchesSegment(d.data().segment) || matchesSegment(d.data().displaySegment))
-      )
+    if (!isDirectionSegmentName(callerSegment)) {
+      const segmentSmDocs = filteredManagersDocs.filter((d) => {
+        const dData = d.data()
+        return (
+          (dData.orgRole || 'team_manager') === 'senior_manager' &&
+          matchesSegment(getDocDisplaySegment(dData))
+        )
+      })
       const segmentSmUids = new Set(segmentSmDocs.map((d) => d.id))
       const relevantUids = filteredManagersDocs
-        .filter(
-          (d) =>
+        .filter((d) => {
+          const dData = d.data()
+          if ((dData.orgRole || 'team_manager') === 'executive') return false
+          return (
             segmentSmUids.has(d.id) ||
-            (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid)) ||
-            matchesSegment(d.data().segment) ||
-            matchesSegment(d.data().displaySegment)
-        )
+            (dData.seniorManagerUid && segmentSmUids.has(dData.seniorManagerUid)) ||
+            matchesSegment(getDocDisplaySegment(dData))
+          )
+        })
         .map((d) => d.id)
       targetManagerUids = relevantUids
     }
@@ -185,10 +189,25 @@ export async function fetchOrgConsolidatedPipeline(
     if (!isCallerExecutive && !allowedSet.has(filterManagerUid)) {
       targetManagerUids = []
     } else if (targetMgr && targetMgr.orgRole === 'senior_manager') {
-      const subordinateTmUids = filteredManagersDocs
-        .filter((d) => d.id === filterManagerUid || d.data().seniorManagerUid === filterManagerUid)
-        .map((d) => d.id)
-      targetManagerUids = subordinateTmUids.length > 0 ? subordinateTmUids : [filterManagerUid]
+      if (isCallerExecutive && callerSegment && !isDirectionSegmentName(callerSegment)) {
+        // Si l'Exécutif observe une zone/segment précis, ne garder que les Superviseurs de cette zone
+        const zoneTmUids = filteredManagersDocs
+          .filter((d) => {
+            const dData = d.data()
+            if ((dData.orgRole || 'team_manager') === 'executive') return false
+            return (
+              (d.id === filterManagerUid || dData.seniorManagerUid === filterManagerUid) &&
+              matchesSegment(getDocDisplaySegment(dData))
+            )
+          })
+          .map((d) => d.id)
+        targetManagerUids = zoneTmUids
+      } else {
+        const subordinateTmUids = filteredManagersDocs
+          .filter((d) => d.id === filterManagerUid || d.data().seniorManagerUid === filterManagerUid)
+          .map((d) => d.id)
+        targetManagerUids = subordinateTmUids.length > 0 ? subordinateTmUids : [filterManagerUid]
+      }
     } else if (orgManagerUids.includes(filterManagerUid)) {
       targetManagerUids = [filterManagerUid]
     } else {
@@ -197,7 +216,15 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   if (targetManagerUids.length === 0) {
-    throw new Error('Manager non trouvé dans cette organisation')
+    return {
+      items: [],
+      managers: [],
+      counts: { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 },
+      values: { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 },
+      hasMore: false,
+      totalFetched: 0,
+      orgCode
+    }
   }
 
   // 4. Agréger les pipelines par chunks de 30 managers (limite Firestore de l'opérateur 'in')
@@ -360,25 +387,28 @@ export async function fetchOrgConsolidatedPipeline(
   //   L'Executive lui-même (et tout profil executive) ne figure JAMAIS dans cette liste.
   //   S'il est rattaché à un segment, seuls les Coordinateurs de son segment sont retournés.
   // - Pour un Coordinateur (Senior Manager) : afficher uniquement les Superviseurs (Team Managers) de son segment.
+  const targetManagerUidSet = new Set(targetManagerUids)
   const relevantManagersDocs = filteredManagersDocs.filter((d) => {
-    const mRole = d.data().orgRole || 'team_manager'
+    const dData = d.data()
+    const mRole = dData.orgRole || 'team_manager'
     // RÈGLE ABSOLUE : Un Executive ne figure JAMAIS dans la liste des managers opérationnels
     if (mRole === 'executive' || d.id === callerUid) return false
     if (isCallerExecutive) {
       if (mRole !== 'senior_manager') return false
-      const isDirectionSegment =
-        callerSegment?.toLowerCase() === 'direction' ||
-        callerSegment?.toLowerCase() === 'direction générale' ||
-        callerSegment?.toUpperCase() === 'ALL'
-      if (callerSegment && !isDirectionSegment) {
-        const seg = d.data().segment
-        const disp = d.data().displaySegment
-        const matches = matchesSegment(seg) || matchesSegment(disp)
-        if (!matches) return false
+      if (callerSegment && !isDirectionSegmentName(callerSegment)) {
+        const matchesOwn = matchesSegment(getDocDisplaySegment(dData))
+        const interims = Array.isArray(dData.interimSegments) ? dData.interimSegments : []
+        const matchesInterim = interims.some((it: any) =>
+          matchesSegment(it?.displaySegment || (it?.zone && it?.segment ? `${it.segment} (${it.zone})` : it?.segment))
+        )
+        if (!matchesOwn && !matchesInterim) return false
       }
       return true
     }
-    return mRole !== 'senior_manager' && d.data().seniorManagerUid === callerUid
+    if (isObservingInterim) {
+      return mRole !== 'senior_manager' && targetManagerUidSet.has(d.id)
+    }
+    return mRole !== 'senior_manager' && dData.seniorManagerUid === callerUid
   })
 
   const managersWithStats = relevantManagersDocs.map((d) => {
@@ -396,6 +426,16 @@ export async function fetchOrgConsolidatedPipeline(
 
     const zone = data.zone || null
     const displaySegment = data.displaySegment || (zone && data.segment ? `${data.segment} (${zone})` : (data.segment || null))
+    const rawInterims = Array.isArray(data.interimSegments) ? data.interimSegments : []
+    const interimSegments = rawInterims
+      .filter((it: any) => it && it.segment)
+      .map((it: any) => ({
+        segment: it.segment as string,
+        zone: (it.zone as string | null) ?? null,
+        displaySegment:
+          (it.displaySegment as string | null) ||
+          (it.zone && it.segment ? `${it.segment} (${it.zone})` : (it.segment as string))
+      }))
 
     return {
       uid: d.id,
@@ -405,6 +445,7 @@ export async function fetchOrgConsolidatedPipeline(
       segment: data.segment || null,
       zone: zone,
       displaySegment: displaySegment,
+      interimSegments,
       isSenior: isSm,
       isCurrent: false,
       seniorManagerUid: data.seniorManagerUid || null,

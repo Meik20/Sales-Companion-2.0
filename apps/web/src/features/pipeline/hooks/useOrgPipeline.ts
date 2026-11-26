@@ -32,6 +32,7 @@ export interface OrgManagerStats {
   segment?: string | null
   zone?: string | null
   displaySegment?: string | null
+  interimSegments?: Array<{ segment: string; zone?: string | null; displaySegment?: string | null }>
   stats: {
     prospection: number
     negociation: number

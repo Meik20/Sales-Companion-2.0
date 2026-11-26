@@ -7,6 +7,7 @@ import { useState } from 'react'
 export type ExportFilters = {
   memberId?: string
   managerId?: string
+  segment?: string
   from?: string // "YYYY-MM-DD"
   to?: string // "YYYY-MM-DD"
 }
@@ -29,6 +30,7 @@ export function useExportTeamPerformance() {
       const params = new URLSearchParams()
       if (filters.memberId) params.set('memberId', filters.memberId)
       if (filters.managerId) params.set('managerId', filters.managerId)
+      if (filters.segment) params.set('segment', filters.segment)
       if (filters.from) params.set('from', filters.from)
       if (filters.to) params.set('to', filters.to)
 

@@ -18,7 +18,9 @@ import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTea
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useOrgPipeline, type OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 import { TeamManagerPerformanceCard } from '@/features/pipeline/components/TeamManagerPerformanceCard'
+import { ExecutiveInterimPipelineSection } from '@/features/pipeline/components/ExecutiveInterimPipelineSection'
 import { aggregateOrgSegmentTargets } from '@/lib/pipeline-metrics'
+import { matchesOrgSegment, isDirectionSegmentName } from '@/lib/org-scope'
 import { getOrgMonthPeriod } from '@/lib/monthly-cycle'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -76,20 +78,22 @@ export default function PipelinePage() {
     return []
   }, [isExecutive, user?.segments, user?.segment])
 
-  // Segments d'un Coordinateur (Segment Titulaire + Segments d'intérim)
+  // Segments d'un Coordinateur (Segment Titulaire + Segments d'intérim avec zone qualifiée)
   const coordinatorSegmentsList = useMemo(() => {
     if (!isSeniorManager) return []
     const list: Array<{ segment: string; display: string; isInterim: boolean }> = []
     if (user?.segment) {
       const titularDisplay = user.displaySegment || (user.zone ? `${user.segment} (${user.zone})` : user.segment)
-      list.push({ segment: user.segment, display: titularDisplay, isInterim: false })
+      list.push({ segment: titularDisplay, display: titularDisplay, isInterim: false })
     }
     if (Array.isArray(user?.interimSegments)) {
       user.interimSegments.forEach((item) => {
-        if (item.segment && !list.some((l) => l.segment.toLowerCase() === item.segment.toLowerCase())) {
+        const interimDisplay =
+          item.displaySegment || (item.zone ? `${item.segment} (${item.zone})` : item.segment)
+        if (interimDisplay && !list.some((l) => l.segment.toLowerCase() === interimDisplay.toLowerCase())) {
           list.push({
-            segment: item.segment,
-            display: item.displaySegment || (item.zone ? `${item.segment} (${item.zone})` : item.segment),
+            segment: interimDisplay,
+            display: interimDisplay,
             isInterim: true
           })
         }
@@ -112,6 +116,26 @@ export default function PipelinePage() {
   const selectedManager = filterManagerUid && orgPipelineQuery.data?.managers
     ? orgPipelineQuery.data.managers.find((m: OrgManagerStats) => m.uid === filterManagerUid)
     : undefined
+
+  // Intérims autorisés pour l'Exécutif lorsqu'un Coordinateur est sélectionné (consultation concomitante sans mélange)
+  const selectedManagerAuthorizedInterims = useMemo(() => {
+    if (!isExecutive || !selectedManager?.isSenior || !Array.isArray(selectedManager.interimSegments)) {
+      return []
+    }
+    const restrictedExecSegments = executiveSegments.filter((s) => !isDirectionSegmentName(s))
+    const titularDisplay = selectedManager.displaySegment || selectedManager.segment || ''
+    return selectedManager.interimSegments
+      .map((it) => {
+        const display = it.displaySegment || (it.zone && it.segment ? `${it.segment} (${it.zone})` : it.segment)
+        return { segment: display, display }
+      })
+      .filter((it) => {
+        if (!it.display) return false
+        if (titularDisplay && it.display.toLowerCase() === titularDisplay.toLowerCase()) return false
+        if (restrictedExecSegments.length === 0) return true
+        return restrictedExecSegments.some((allowed) => matchesOrgSegment(it.display, allowed))
+      })
+  }, [isExecutive, selectedManager, executiveSegments])
 
   const managerPipelineQuery = useManagerPipeline()
   const userPipelineQuery = useUserPipeline()
@@ -728,11 +752,27 @@ export default function PipelinePage() {
                         }
                         searchPlaceholder={lang === 'en' ? 'Search by name or segment…' : 'Rechercher par nom ou segment…'}
                         emptyLabel={lang === 'en' ? 'No match found' : 'Aucun résultat'}
-                        options={filteredManagers.map((mgr: OrgManagerStats) => ({
-                          id: mgr.uid,
-                          label: mgr.name || mgr.email || (isExecutive ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')),
-                          badge: mgr.displaySegment || mgr.segment || null
-                        }))}
+                        options={filteredManagers.map((mgr: OrgManagerStats) => {
+                          const restrictedExecSegments = executiveSegments.filter((s) => !isDirectionSegmentName(s))
+                          const mgrInterims =
+                            isExecutive && Array.isArray(mgr.interimSegments)
+                              ? mgr.interimSegments
+                                  .map((it) => it.displaySegment || (it.zone && it.segment ? `${it.segment} (${it.zone})` : it.segment))
+                                  .filter((disp) => {
+                                    if (!disp) return false
+                                    if (restrictedExecSegments.length === 0) return true
+                                    return restrictedExecSegments.some((allowed) => matchesOrgSegment(disp, allowed))
+                                  })
+                              : []
+                          return {
+                            id: mgr.uid,
+                            label: mgr.name || mgr.email || (isExecutive ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')),
+                            badge: mgr.displaySegment || mgr.segment || null,
+                            meta: mgrInterims.length > 0
+                              ? (lang === 'en' ? `+ Interim: ${mgrInterims.join(', ')}` : `+ Intérim : ${mgrInterims.join(', ')}`)
+                              : null
+                          }
+                        })}
                       />
                     )
                   })()}
@@ -827,9 +867,25 @@ export default function PipelinePage() {
                 showTargets={false}
                 isOrgView
                 managers={orgPipelineQuery.data?.managers}
+                observedSegment={activeSegment}
               />
             ) : null}
           </DataCard>
+
+          {/* ── Pipelines d'intérim concomitants (vue Executive uniquement, strictement isolés du titulaire) ── */}
+          {isExecutive &&
+            selectedManager?.isSenior &&
+            selectedManagerAuthorizedInterims.map((interim) => (
+              <ExecutiveInterimPipelineSection
+                key={interim.display}
+                coordinator={selectedManager}
+                interimDisplay={interim.display}
+                period={activePeriod}
+                orgCountry={orgCountry}
+                members={members}
+                userUid={user?.uid}
+              />
+            ))}
         </>
       ) : null}
 

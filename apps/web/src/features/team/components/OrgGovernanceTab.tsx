@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { DataCard, ConfirmDialog } from '@/components/ui/index'
@@ -1092,7 +1092,7 @@ export function OrgGovernanceTab() {
                             value={smSegmentInput}
                             onChange={(e) => setSmSegmentInput(e.target.value)}
                             maxLength={40}
-                            className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40 uppercase"
+                            className="w-full rounded-lg border border-violet-400/70 dark:border-violet-500/50 bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50 uppercase"
                           />
                           {existingOrgSegments.length > 0 && (
                             <datalist id="existing-org-segments">
@@ -1112,7 +1112,7 @@ export function OrgGovernanceTab() {
                             value={smZoneInput}
                             onChange={(e) => setSmZoneInput(e.target.value)}
                             maxLength={40}
-                            className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                            className="w-full rounded-lg border border-violet-400/70 dark:border-violet-500/50 bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50"
                           />
                         </div>
                       </div>
@@ -1191,7 +1191,7 @@ export function OrgGovernanceTab() {
                                         </div>
                                         <div className="text-[10.5px] text-muted-foreground truncate">{coord.email}</div>
                                       </div>
-                                      <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-violet-400/30 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300">
+                                      <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/15 text-violet-300 dark:text-violet-200 font-bold">
                                         {coord.displaySegment || coord.segment || 'N/D'}
                                       </span>
                                     </button>
@@ -1442,7 +1442,7 @@ export function OrgGovernanceTab() {
                             value={executiveCustomLabel}
                             onChange={(e) => setExecutiveCustomLabel(e.target.value)}
                             maxLength={60}
-                            className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                            className="w-full rounded-lg border border-blue-400/70 dark:border-blue-500/50 bg-card px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           />
                         </div>
                         {/* Champ : Segments d'affectation (Dropdown compact avec cases à cocher) */}
@@ -1453,7 +1453,7 @@ export function OrgGovernanceTab() {
                           <button
                             type="button"
                             onClick={() => setExecutiveSegmentsDropdownOpen((prev) => !prev)}
-                            className="w-full flex items-center justify-between gap-2 rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer h-[38px] text-left"
+                            className="w-full flex items-center justify-between gap-2 rounded-lg border border-blue-400/70 dark:border-blue-500/50 bg-card px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer h-[38px] text-left"
                           >
                             <span className="truncate font-medium">{executiveSegmentsButtonLabel}</span>
                             <ChevronDown
@@ -1590,7 +1590,7 @@ export function OrgGovernanceTab() {
                             return (
                               <div
                                 key={exec.uid}
-                                className="rounded-lg border border-blue-300/40 dark:border-blue-500/25 bg-white/70 dark:bg-blue-950/20 p-2.5 text-[12px]"
+                                className="rounded-lg border border-blue-500/30 bg-secondary/40 p-2.5 text-[12px]"
                               >
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
                                   <div className="min-w-0">
@@ -2133,3 +2133,4 @@ export function OrgGovernanceTab() {
     </>
   )
 }
+

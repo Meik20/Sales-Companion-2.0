@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext, getMonthPeriodInfo } from '@/lib/monthly-cycle'
 import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
+import { resolveCallerSegmentAccess, matchesOrgSegment } from '@/lib/org-scope'
 
 export const dynamic = 'force-dynamic'
 
@@ -109,95 +110,46 @@ export async function GET(request: NextRequest) {
     const availableSegments = Array.from(allSegmentsSet).sort((a, b) => a.localeCompare(b, 'fr'))
 
     // Résolution et contrôle strict du segment d'observation
-    let targetSegment = reqSegment || (isCallerExecutive ? null : callerSegment)
-    if (isCallerExecutive) {
-      const allowedSegments = Array.isArray(callerData.segments) && callerData.segments.length > 0
-        ? callerData.segments
-        : callerData.segment && callerData.segment.toUpperCase() !== 'ALL'
-          ? [callerData.segment]
-          : null
-
-      if (allowedSegments && allowedSegments.length > 0) {
-        if (reqSegment) {
-          if (!allowedSegments.includes(reqSegment)) {
-            return NextResponse.json(
-              { error: `Accès non autorisé au segment « ${reqSegment} »` },
-              { status: 403 }
-            )
-          }
-          targetSegment = reqSegment
-        } else {
-          targetSegment = allowedSegments[0]
-        }
-      }
-    } else if (callerOrgRole === 'senior_manager') {
-      // Pour le Coordinateur : son segment titulaire + ses segments d'intérim
-      const titularSegment = callerData.segment
-      const interimList = Array.isArray(callerData.interimSegments) ? callerData.interimSegments : []
-      const interimSegNames = interimList.map((item: any) => item.segment).filter(Boolean)
-      const allowedSegments = [titularSegment, ...interimSegNames].filter(Boolean) as string[]
-
-      if (reqSegment && allowedSegments.length > 0) {
-        const matchesAllowed = allowedSegments.some((seg) => {
-          const s = seg.toLowerCase().trim()
-          const r = reqSegment.toLowerCase().trim()
-          return s === r || s.startsWith(r + ' (') || r.startsWith(s + ' (')
-        })
-        if (!matchesAllowed) {
-          return NextResponse.json(
-            { error: `Accès non autorisé au segment « ${reqSegment} »` },
-            { status: 403 }
-          )
-        }
-        targetSegment = reqSegment
-      } else {
-        targetSegment = titularSegment
-      }
+    const segmentAccess = resolveCallerSegmentAccess({
+      callerOrgRole,
+      callerSegment,
+      callerSegments: Array.isArray(callerData.segments) ? callerData.segments : null,
+      callerInterimSegments: Array.isArray(callerData.interimSegments) ? callerData.interimSegments : null,
+      requestedSegment: reqSegment
+    })
+    if (!segmentAccess.ok) {
+      return NextResponse.json({ error: segmentAccess.error }, { status: segmentAccess.status })
     }
 
-    const isDirectionSegment =
-      !targetSegment ||
-      targetSegment.toLowerCase() === 'direction' ||
-      targetSegment.toLowerCase() === 'direction générale' ||
-      targetSegment.toUpperCase() === 'ALL'
-
-    const matchesTargetSegment = (seg?: string | null) => {
-      if (!seg || !targetSegment) return false
-      const s = seg.trim().toLowerCase()
-      const t = targetSegment.trim().toLowerCase()
-      return s === t || s.startsWith(t + ' (') || s.startsWith(t + ' –')
-    }
-
-    // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation.
-    // ÉTANCHÉITÉ STRICTE : Un Coordinateur ne voit que lui-même et ses propres Superviseurs (seniorManagerUid === callerUid).
-    // En cas de consultation d'un segment d'intérim, il voit les Superviseurs rattachés à ce segment d'intérim.
-    // Seul un Responsable Exécutif agrège tous les Coordinateurs et Superviseurs d'un segment observé.
-    const isObservingInterim = !isCallerExecutive && targetSegment && callerData.segment && !matchesTargetSegment(callerData.segment)
+    const targetSegment = segmentAccess.targetSegment
+    const isDirectionSegment = segmentAccess.isDirectionScope
+    const matchesTargetSegment = (seg?: string | null) => matchesOrgSegment(seg, targetSegment)
+    const isObservingInterim = segmentAccess.isObservingInterim
 
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
       const mRole = mData.orgRole || 'team_manager'
+      const mDisplaySeg =
+        mData.displaySegment ||
+        (mData.zone && mData.segment ? `${mData.segment} (${mData.zone})` : mData.segment)
       if (mRole === 'executive') return false
       if (!isCallerExecutive) {
         if (isObservingInterim) {
-          return (
-            d.id === decoded.uid ||
-            mData.seniorManagerUid === decoded.uid ||
-            matchesTargetSegment(mData.segment) ||
-            matchesTargetSegment(mData.displaySegment)
-          )
+          return d.id === decoded.uid || matchesTargetSegment(mDisplaySeg)
         }
         return d.id === decoded.uid || mData.seniorManagerUid === decoded.uid
       }
       if (isDirectionSegment) return true
       return (
-        matchesTargetSegment(mData.segment) ||
-        matchesTargetSegment(mData.displaySegment) ||
+        matchesTargetSegment(mDisplaySeg) ||
         (mData.seniorManagerUid &&
-          managersSnap.docs.some(
-            (sm) => sm.id === mData.seniorManagerUid &&
-              (matchesTargetSegment(sm.data().segment) || matchesTargetSegment(sm.data().displaySegment))
-          ))
+          managersSnap.docs.some((sm) => {
+            const smData = sm.data()
+            const smDisplaySeg =
+              smData.displaySegment ||
+              (smData.zone && smData.segment ? `${smData.segment} (${smData.zone})` : smData.segment)
+            return sm.id === mData.seniorManagerUid && matchesTargetSegment(smDisplaySeg)
+          }))
       )
     })
 
