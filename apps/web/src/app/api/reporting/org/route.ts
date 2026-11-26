@@ -96,7 +96,12 @@ export async function GET(request: NextRequest) {
       .where('role', '==', 'manager')
       .get()
 
-    const callerSegment = callerData.segment || null
+    const callerSegment =
+      callerData.displaySegment ||
+      (callerData.zone && callerData.segment
+        ? `${callerData.segment} (${callerData.zone})`
+        : callerData.segment) ||
+      null
     const callerOrgRole = callerData.orgRole || 'team_manager'
     const isCallerExecutive = callerOrgRole === 'executive'
 
@@ -126,6 +131,21 @@ export async function GET(request: NextRequest) {
     const matchesTargetSegment = (seg?: string | null) => matchesOrgSegment(seg, targetSegment)
     const isObservingInterim = segmentAccess.isObservingInterim
 
+    const interimSeniorUids = new Set<string>()
+    if (!isCallerExecutive && isObservingInterim) {
+      managersSnap.docs.forEach((sm) => {
+        const smData = sm.data()
+        if ((smData.orgRole || 'team_manager') === 'senior_manager') {
+          const smDisplaySeg =
+            smData.displaySegment ||
+            (smData.zone && smData.segment ? `${smData.segment} (${smData.zone})` : smData.segment)
+          if (matchesTargetSegment(smDisplaySeg)) {
+            interimSeniorUids.add(sm.id)
+          }
+        }
+      })
+    }
+
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
       const mRole = mData.orgRole || 'team_manager'
@@ -135,7 +155,10 @@ export async function GET(request: NextRequest) {
       if (mRole === 'executive') return false
       if (!isCallerExecutive) {
         if (isObservingInterim) {
-          return d.id === decoded.uid || matchesTargetSegment(mDisplaySeg)
+          return (
+            matchesTargetSegment(mDisplaySeg) ||
+            Boolean(mData.seniorManagerUid && interimSeniorUids.has(mData.seniorManagerUid))
+          )
         }
         return d.id === decoded.uid || mData.seniorManagerUid === decoded.uid
       }

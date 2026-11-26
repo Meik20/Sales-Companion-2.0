@@ -388,14 +388,21 @@ export async function GET(request: NextRequest) {
     // • Team Manager   → uniquement son propre UID
     // • Senior Manager → uniquement ses Superviseurs (ou segment d'intérim autorisé)
     // • Executive      → Superviseurs du segment observé (ou toute l'organisation si Direction/ALL)
+    const callerDisplaySegment =
+      callerData?.displaySegment ||
+      (callerData?.zone && callerData?.segment
+        ? `${callerData.segment} (${callerData.zone})`
+        : callerData?.segment) ||
+      null
+
     let orgManagerUids: string[] = isOrgView ? [] : [callerUid]
-    let exportScopeLabel = 'ÉQUIPE' // libellé titre rapport
+    let exportScopeLabel = callerDisplaySegment ? callerDisplaySegment.toUpperCase() : 'ÉQUIPE' // libellé titre rapport
     const tmMap = new Map<string, { uid: string; name: string; email: string }>()
 
     if (isOrgView) {
       const access = resolveCallerSegmentAccess({
         callerOrgRole,
-        callerSegment: callerData?.segment ?? null,
+        callerSegment: callerDisplaySegment,
         callerSegments: Array.isArray(callerData?.segments) ? callerData.segments : null,
         callerInterimSegments: Array.isArray(callerData?.interimSegments)
           ? callerData.interimSegments
@@ -417,13 +424,17 @@ export async function GET(request: NextRequest) {
 
         const allOrgManagers: OrgManagerScopeRecord[] = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
+          const mDisplay =
+            mData.displaySegment ||
+            (mData.zone && mData.segment ? `${mData.segment} (${mData.zone})` : mData.segment) ||
+            null
           return {
             uid: d.id,
             name: mData.name || mData.displayName || mData.email || 'Superviseur',
             email: mData.email || '',
             orgRole: mData.orgRole || 'team_manager',
             segment: mData.segment || null,
-            displaySegment: mData.displaySegment || null,
+            displaySegment: mDisplay,
             seniorManagerUid: mData.seniorManagerUid || null
           }
         })
@@ -445,18 +456,16 @@ export async function GET(request: NextRequest) {
         orgManagerUids = scoped.effectiveTeamManagerUids
 
         if (scoped.selectedFilterManager) {
-          const prefix =
-            scoped.selectedFilterManager.orgRole === 'senior_manager' ? 'COORD.' : 'SUPERVISEUR'
-          exportScopeLabel = `${prefix} – ${scoped.selectedFilterManager.name.toUpperCase()}`
+          exportScopeLabel = scoped.selectedFilterManager.name.toUpperCase()
         } else if (isExecutive) {
           exportScopeLabel = access.isDirectionScope
-            ? 'ORGANISATION'
-            : `SEGMENT – ${(access.targetSegment || '').toUpperCase()}`
+            ? 'TOUS LES SEGMENTS'
+            : (access.targetSegment || 'SEGMENT').toUpperCase()
         } else {
           exportScopeLabel =
             access.isObservingInterim && access.targetSegment
-              ? `INTÉRIM – ${access.targetSegment.toUpperCase()}`
-              : 'ÉQUIPES'
+              ? `${access.targetSegment.toUpperCase()} (INTÉRIM)`
+              : (callerDisplaySegment || 'ÉQUIPES').toUpperCase()
         }
       }
     }
@@ -1092,7 +1101,9 @@ export async function GET(request: NextRequest) {
     // Titre du rapport (13 colonnes : A1:M1)
     summarySheet.mergeCells('A1:M1')
     const titleCell = summarySheet.getCell('A1')
-    titleCell.value = `📊 RAPPORT DE PERFORMANCE – PIPELINE ${exportScopeLabel}`
+    titleCell.value = isOrgView
+      ? `📊 RAPPORT DE PERFORMANCE – ${exportScopeLabel}`
+      : `📊 RAPPORT DE PERFORMANCE – PIPELINE ${exportScopeLabel}`
     titleCell.font = { name: 'Calibri', bold: true, size: 14, color: { argb: COLOR_HEADER_FG } }
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_HEADER_BG } }
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' }

@@ -223,4 +223,62 @@ describe('org-scope multi-executive & zone isolation', () => {
     })
     expect(interimScope.effectiveTeamManagerUids).toEqual(['tm-pme-1'])
   })
+
+  it('supports Supervisor sub-zones (Littoral 1, Centre 1) across titular, interim and Executive views while excluding Coordinators & Executives from teamManagers', () => {
+    const withSubZones: OrgManagerScopeRecord[] = [
+      ...SAMPLE_ORG_MANAGERS,
+      {
+        uid: 'tm-centre-sub1',
+        name: 'TM Centre 1',
+        email: 'tmc1@org.test',
+        orgRole: 'team_manager',
+        segment: 'SOHO',
+        displaySegment: 'SOHO (Centre 1)',
+        seniorManagerUid: 'sm-centre'
+      },
+      {
+        uid: 'tm-centre-sub2',
+        name: 'TM Centre 2',
+        email: 'tmc2@org.test',
+        orgRole: 'team_manager',
+        segment: 'SOHO',
+        displaySegment: 'SOHO (Centre 2)',
+        seniorManagerUid: 'sm-centre'
+      }
+    ]
+
+    expect(matchesOrgSegment('SOHO (Centre 1)', 'SOHO (Centre)')).toBe(true)
+    expect(matchesOrgSegment('SOHO (Centre 1)', 'SOHO (Littoral)')).toBe(false)
+
+    // Intérim du Coordinateur Littoral sur SOHO (Centre) -> doit voir les sous-zones du Centre uniquement, jamais un Coordinateur ni un Exécutif
+    const interimCentre = resolveCallerSegmentAccess({
+      callerOrgRole: 'senior_manager',
+      callerSegment: 'SOHO (Littoral)',
+      callerInterimSegments: [{ segment: 'SOHO (Centre)' }],
+      requestedSegment: 'SOHO (Centre)'
+    })
+    expect(interimCentre.ok).toBe(true)
+    if (!interimCentre.ok) return
+    expect(interimCentre.isObservingInterim).toBe(true)
+
+    const scopedCentre = resolveScopedOrgManagers({
+      allOrgManagers: withSubZones,
+      callerUid: 'sm-littoral',
+      callerOrgRole: 'senior_manager',
+      targetSegment: interimCentre.targetSegment,
+      isDirectionScope: interimCentre.isDirectionScope,
+      isObservingInterim: interimCentre.isObservingInterim
+    })
+
+    expect(scopedCentre.effectiveTeamManagerUids).toEqual([
+      'tm-centre-1',
+      'tm-centre-sub1',
+      'tm-centre-sub2'
+    ])
+    expect(
+      scopedCentre.teamManagers.some(
+        (m) => m.orgRole === 'senior_manager' || m.orgRole === 'executive'
+      )
+    ).toBe(false)
+  })
 })

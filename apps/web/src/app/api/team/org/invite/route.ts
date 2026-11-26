@@ -204,10 +204,12 @@ export async function POST(request: NextRequest) {
     let displaySegment: string | null = null
 
     if (inviteType === 'team_manager') {
-      // Le Superviseur hérite du segment de son Coordinateur créateur si absent du body
+      // Le Superviseur hérite du segment de son Coordinateur créateur si absent du body,
+      // et peut recevoir une sous-zone spécifique (ex: "Littoral 1", "Littoral 2")
       const tmSeg = typeof body.segment === 'string' ? body.segment.trim() : null
+      const tmZone = typeof body.zone === 'string' && body.zone.trim() ? body.zone.trim() : null
       assignedSegment = tmSeg || creatorSegment || null
-      assignedZone = typeof body.zone === 'string' ? body.zone.trim() : (userData.zone || null)
+      assignedZone = tmZone || (typeof userData.zone === 'string' && userData.zone.trim() ? userData.zone.trim() : null)
       displaySegment = assignedZone && assignedSegment ? `${assignedSegment} (${assignedZone})` : assignedSegment
       if (assignedSegment) assignedSegments = [assignedSegment]
     } else if (inviteType === 'executive') {

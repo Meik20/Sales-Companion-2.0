@@ -133,6 +133,8 @@ export function OrgGovernanceTab() {
   const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | 'executive' | null>(null)
   // Libellé personnalisé du rôle executive saisi par le SM1 (ex: "Directeur Général", "Président")
   const [executiveCustomLabel, setExecutiveCustomLabel] = useState('')
+  // Sous-zone optionnelle pour le nouveau Superviseur (ex: "Littoral 1", "Littoral 2")
+  const [tmZoneInput, setTmZoneInput] = useState('')
   // Segment personnalisé pour le nouveau Coordinateur
   const [smSegmentInput, setSmSegmentInput] = useState('')
   // Zone géographique obligatoire pour le nouveau Coordinateur
@@ -449,7 +451,10 @@ export function OrgGovernanceTab() {
       const res = await fetch('/api/team/org/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type: 'team_manager' })
+        body: JSON.stringify({
+          type: 'team_manager',
+          zone: tmZoneInput.trim() || undefined
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur génération lien')
@@ -459,7 +464,10 @@ export function OrgGovernanceTab() {
       pushToast({
         type: 'success',
         title: t('team.orgGovernance.tmInviteSuccessTitle'),
-        description: t('team.orgGovernance.tmInviteSuccessDesc').replace('{segment}', data.segment || t('team.orgGovernance.segmentDefault'))
+        description: t('team.orgGovernance.tmInviteSuccessDesc').replace(
+          '{segment}',
+          data.displaySegment || data.segment || t('team.orgGovernance.segmentDefault')
+        )
       })
     } catch (err: any) {
       pushToast({
@@ -1050,6 +1058,31 @@ export function OrgGovernanceTab() {
                       placement="top"
                       content={t('team.orgGovernance.tmInviteTooltip')}
                     />
+                    <div className="mt-3">
+                      <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                        {lang === 'en' ? 'Specific zone / sub-zone (optional)' : 'Sous-zone / Zone spécifique (optionnelle)'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={
+                          orgData?.zone
+                            ? (lang === 'en' ? `e.g. ${orgData.zone} 1, ${orgData.zone} 2…` : `ex: ${orgData.zone} 1, ${orgData.zone} 2…`)
+                            : (lang === 'en' ? 'e.g. Littoral 1, Littoral 2…' : 'ex: Littoral 1, Littoral 2…')
+                        }
+                        value={tmZoneInput}
+                        onChange={(e) => setTmZoneInput(e.target.value)}
+                        maxLength={40}
+                        className="w-full rounded-lg border border-primary/40 bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      />
+                      {tmZoneInput.trim() && (orgData?.segment || user?.segment) && (
+                        <p className="mt-1.5 text-[11px] text-primary font-medium">
+                          {lang === 'en' ? 'Supervisor label:' : 'Libellé Superviseur :'}{' '}
+                          <span className="font-bold">
+                            {(orgData?.segment || user?.segment || '').split('(')[0]?.trim().toUpperCase()} ({tmZoneInput.trim()})
+                          </span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -1160,7 +1193,7 @@ export function OrgGovernanceTab() {
 
                             {/* Dropdown 100% opaque (Règle 8) */}
                             {coordinatorDropdownOpen && (
-                              <div className="dropdown-menu absolute right-0 z-30 mt-1.5 w-72 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
+                              <div className="dropdown-menu absolute right-0 z-30 mt-1.5 w-80 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
                                 <div className="px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground border-b border-border mb-1">
                                   {lang === 'en' ? 'Select a Coordinator' : 'Sélectionner un Coordinateur'}
                                 </div>
@@ -1178,20 +1211,15 @@ export function OrgGovernanceTab() {
                                         setInterimZoneInput('')
                                         setCoordinatorDropdownOpen(false)
                                       }}
-                                      className="w-full flex items-center justify-between gap-2 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
+                                      className="w-full flex items-center justify-between gap-2.5 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
                                     >
-                                      <div className="min-w-0">
-                                        <div className="text-[12px] font-bold text-foreground truncate flex items-center gap-1.5">
-                                          <span>{coord.name}</span>
-                                          {coord.isPrimary && (
-                                            <span className="text-[9px] px-1 py-0.2 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
-                                              SM1
-                                            </span>
-                                          )}
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-[12px] font-bold text-foreground truncate">
+                                          {coord.name}
                                         </div>
                                         <div className="text-[10.5px] text-muted-foreground truncate">{coord.email}</div>
                                       </div>
-                                      <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/15 text-violet-300 dark:text-violet-200 font-bold">
+                                      <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/15 text-violet-300 dark:text-violet-200 font-bold">
                                         {coord.displaySegment || coord.segment || 'N/D'}
                                       </span>
                                     </button>

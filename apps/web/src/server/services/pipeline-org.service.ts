@@ -142,11 +142,25 @@ export async function fetchOrgConsolidatedPipeline(
   if (!isCallerExecutive) {
     if (isObservingInterim) {
       // Intérim : cibler UNIQUEMENT les Superviseurs rattachés à ce segment d'intérim (sans mélanger le titulaire)
+      const interimSeniorUids = new Set(
+        filteredManagersDocs
+          .filter((d) => {
+            const dData = d.data()
+            return (
+              (dData.orgRole || 'team_manager') === 'senior_manager' &&
+              matchesSegment(getDocDisplaySegment(dData))
+            )
+          })
+          .map((d) => d.id)
+      )
       const interimScopeUids = filteredManagersDocs
         .filter((d) => {
           const dData = d.data()
           if ((dData.orgRole || 'team_manager') === 'executive') return false
-          return matchesSegment(getDocDisplaySegment(dData))
+          return (
+            matchesSegment(getDocDisplaySegment(dData)) ||
+            Boolean(dData.seniorManagerUid && interimSeniorUids.has(dData.seniorManagerUid))
+          )
         })
         .map((d) => d.id)
       targetManagerUids = interimScopeUids

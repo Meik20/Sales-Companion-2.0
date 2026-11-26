@@ -839,7 +839,7 @@ export default function PipelinePage() {
                 selectedPeriod={activePeriod}
                 onSelectPeriod={setSelectedPeriod}
                 countryCode={orgCountry}
-                observedSegment={isExecutive ? activeSegment : undefined}
+                observedSegment={activeSegment}
               />
             )}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (

@@ -46,7 +46,9 @@ export function isDirectionSegmentName(seg?: string | null): boolean {
 }
 
 /**
- * Compare deux libellés de segment en gérant le format composé `Segment (Zone)` ou `Segment – Zone`
+ * Compare deux libellés de segment en gérant :
+ * - le format composé `Segment (Zone)` ou `Segment – Zone`
+ * - les sous-zones d'un Superviseur (`SOHO (Littoral 1)` rattaché à `SOHO (Littoral)`)
  * tout en gardant `SOHO (Littoral)` et `SOHO (Centre)` strictement distincts.
  */
 export function matchesOrgSegment(candidate?: string | null, target?: string | null): boolean {
@@ -54,13 +56,33 @@ export function matchesOrgSegment(candidate?: string | null, target?: string | n
   const c = candidate.trim().toLowerCase()
   const t = target.trim().toLowerCase()
   if (!c || !t) return false
-  return (
+  if (
     c === t ||
     c.startsWith(`${t} (`) ||
     c.startsWith(`${t} –`) ||
     t.startsWith(`${c} (`) ||
     t.startsWith(`${c} –`)
-  )
+  ) {
+    return true
+  }
+  const extractParts = (val: string): { base: string; zone: string } | null => {
+    const match = val.match(/^(.+?)\s*\(([^)]+)\)$/)
+    if (!match) return null
+    return { base: match[1]!.trim(), zone: match[2]!.trim() }
+  }
+  const cParts = extractParts(c)
+  const tParts = extractParts(t)
+  if (cParts && tParts && cParts.base === tParts.base) {
+    if (
+      cParts.zone.startsWith(`${tParts.zone} `) ||
+      cParts.zone.startsWith(`${tParts.zone}-`) ||
+      tParts.zone.startsWith(`${cParts.zone} `) ||
+      tParts.zone.startsWith(`${cParts.zone}-`)
+    ) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
@@ -223,8 +245,16 @@ export function resolveScopedOrgManagers(params: {
     }
   } else if (callerOrgRole === 'senior_manager') {
     if (isObservingInterim) {
+      const interimSeniorUids = new Set(
+        operationalCandidates
+          .filter((m) => m.orgRole === 'senior_manager' && matchesManagerSegment(m))
+          .map((m) => m.uid)
+      )
       scopedManagers = operationalCandidates.filter(
-        (m) => m.uid === callerUid || matchesManagerSegment(m)
+        (m) =>
+          m.uid === callerUid ||
+          matchesManagerSegment(m) ||
+          Boolean(m.seniorManagerUid && interimSeniorUids.has(m.seniorManagerUid))
       )
     } else {
       scopedManagers = operationalCandidates.filter(
@@ -236,7 +266,9 @@ export function resolveScopedOrgManagers(params: {
   }
 
   const seniorManagers = scopedManagers.filter((m) => m.orgRole === 'senior_manager')
-  const teamManagers = scopedManagers.filter((m) => m.orgRole !== 'senior_manager')
+  const teamManagers = scopedManagers.filter(
+    (m) => m.orgRole !== 'senior_manager' && m.orgRole !== 'executive'
+  )
 
   let effectiveTeamManagerUids = teamManagers.map((m) => m.uid)
   let selectedFilterManager: OrgManagerScopeRecord | null = null
