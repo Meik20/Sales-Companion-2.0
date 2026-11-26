@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { DataCard, Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
+import { ProfileFilterDropdown } from '@/components/ui/ProfileFilterDropdown'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useManagerPipeline } from '@/features/pipeline/hooks/useManagerPipeline'
 import { ManagerPipelineList } from '@/features/pipeline/components/ManagerPipelineList'
@@ -709,51 +710,32 @@ export default function PipelinePage() {
                   >
                     <span>{t('pipeline.all') || 'Tous'}</span>
                   </button>
-                  {orgPipelineQuery.data.managers
-                    .filter((m: OrgManagerStats) => {
+                  {(() => {
+                    const filteredManagers = orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => {
                       if (m.uid === user?.uid) return false
                       if ((m as any).orgRole === 'executive') return false
                       return isExecutive ? m.isSenior : !m.isSenior
                     })
-                    .map((mgr: OrgManagerStats) => {
-                      const isSelected = filterManagerUid === mgr.uid
-                      return (
-                        <button
-                          key={mgr.uid}
-                          type="button"
-                          onClick={() =>
-                            setFilterManagerUid(isSelected ? undefined : mgr.uid)
-                          }
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: 20,
-                            border: isSelected
-                              ? '1px solid #6366f1'
-                              : '1px solid var(--border, rgba(255,255,255,0.1))',
-                            background: isSelected
-                              ? '#6366f1'
-                              : 'var(--secondary, #1e2a3b)',
-                            color: isSelected
-                              ? '#ffffff'
-                              : 'var(--foreground, #f1f5f9)',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            transition: 'all 150ms ease'
-                          }}
-                        >
-                          <span>
-                            {mgr.name || mgr.email}
-                            {(mgr.displaySegment || mgr.segment)
-                              ? ` · ${mgr.displaySegment || mgr.segment}`
-                              : ''}
-                          </span>
-                        </button>
-                      )
-                    })}
+                    if (filteredManagers.length === 0) return null
+                    return (
+                      <ProfileFilterDropdown
+                        value={filterManagerUid}
+                        onChange={(id) => setFilterManagerUid(id)}
+                        placeholder={
+                          isExecutive
+                            ? (lang === 'en' ? 'Select a Coordinator…' : 'Choisir un Coordinateur…')
+                            : (lang === 'en' ? 'Select a Supervisor…' : 'Choisir un Superviseur…')
+                        }
+                        searchPlaceholder={lang === 'en' ? 'Search by name or segment…' : 'Rechercher par nom ou segment…'}
+                        emptyLabel={lang === 'en' ? 'No match found' : 'Aucun résultat'}
+                        options={filteredManagers.map((mgr: OrgManagerStats) => ({
+                          id: mgr.uid,
+                          label: mgr.name || mgr.email || (isExecutive ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')),
+                          badge: mgr.displaySegment || mgr.segment || null
+                        }))}
+                      />
+                    )
+                  })()}
 
                 </div>
               </div>

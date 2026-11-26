@@ -1,8 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Badge, ConfirmDialog, DeadlineBadge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
+import { ProfileFilterDropdown } from '@/components/ui/ProfileFilterDropdown'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -2408,93 +2409,27 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
             {/* Dropdown : Filtrer par TM (SM) ou par commercial (TM) */}
             {memberSummaries.length > 0 && (
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <select
-                  value={
-                    selectedMemberId === 'all' || selectedMemberId === 'unassigned'
-                      ? ''
-                      : selectedMemberId
-                  }
-                  onChange={(e) => {
-                    if (e.target.value) setSelectedMemberId(e.target.value)
-                  }}
-                  style={{
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                    height: 34,
-                    paddingLeft: 12,
-                    paddingRight: 32,
-                    borderRadius: 20,
-                    border:
-                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                        ? '1px solid #6366f1'
-                        : '1px solid var(--border, rgba(255,255,255,0.12))',
-                    background:
-                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                        ? '#6366f1'
-                        : 'var(--secondary, #1e2a3b)',
-                    color:
-                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                        ? '#ffffff'
-                        : 'var(--foreground, #f1f5f9)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    minWidth: 200,
-                    transition: 'all 150ms ease'
-                  }}
-                >
-                  {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
-                    <option value="" disabled>
-                      {isOrgView ? t('pipeline.filterByTM') : t('pipeline.filterByMember')}
-                    </option>
-                  )}
-                  {isOrgView ? (
-                    <>
-                      {memberSummaries.length > 0 && (
-                        <optgroup label={t('pipeline.orgTeamManagers')}>
-                          {memberSummaries.map((m) => {
-                            const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                            return (
-                              <option key={m.uid} value={m.uid}>
-                                {m.name}{warn}
-                              </option>
-                            )
-                          })}
-                        </optgroup>
-                      )}
-
-                    </>
-                  ) : (
-                    memberSummaries.map((m) => {
-                      const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                      return (
-                        <option key={m.uid} value={m.uid}>
-                          {m.name} – {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
-                        </option>
-                      )
-                    })
-                  )}
-                </select>
-                <span
-                  style={{
-                    position: 'absolute',
-                    right: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    color:
-                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                        ? 'rgba(255,255,255,0.8)'
-                        : 'var(--muted-foreground, #94a3b8)',
-                    fontSize: 11,
-                    lineHeight: 1
-                  }}
-                >
-                  ▾
-                </span>
-              </div>
+              <ProfileFilterDropdown
+                value={
+                  selectedMemberId === 'all' || selectedMemberId === 'unassigned'
+                    ? undefined
+                    : selectedMemberId
+                }
+                onChange={(id) => setSelectedMemberId(id ?? 'all')}
+                placeholder={isOrgView ? t('pipeline.filterByTM') : t('pipeline.filterByMember')}
+                searchPlaceholder={lang === 'en' ? 'Search by name…' : 'Rechercher par nom…'}
+                emptyLabel={lang === 'en' ? 'No match found' : 'Aucun résultat'}
+                minWidth={210}
+                options={memberSummaries.map((m) => ({
+                  id: m.uid,
+                  label: m.name,
+                  meta: isOrgView
+                    ? undefined
+                    : `${m.totalCount} ${m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}`,
+                  badge: m.overdueCount > 0 ? t('pipeline.overdueBadge', { count: m.overdueCount }) : null,
+                  hasAlert: m.overdueCount > 0
+                }))}
+              />
             )}
           </div>
         </div>
