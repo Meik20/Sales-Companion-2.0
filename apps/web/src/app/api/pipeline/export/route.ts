@@ -62,18 +62,18 @@ export async function GET(request: NextRequest) {
     // ══════════════════════════════════════════════════════════════════════
     if (callerRole === 'independent') {
       const MONTHS_FR_IND = [
-        'Janvier',
-        'Février',
-        'Mars',
-        'Avril',
+        'Jan',
+        'Fév',
+        'Mar',
+        'Avr',
         'Mai',
         'Juin',
-        'Juillet',
+        'Juil',
         'Août',
-        'Septembre',
-        'Octobre',
-        'Novembre',
-        'Décembre'
+        'Sep',
+        'Oct',
+        'Nov',
+        'Déc'
       ]
 
       // Fetch du pipeline personnel et des clients archivés
@@ -153,12 +153,12 @@ export async function GET(request: NextRequest) {
         return s
       }
 
-      // Période lisible Day-by-Day fidèle
+      // Période lisible format court (ex. "1 - 26 Nov 2026")
       const now = new Date()
       let periodLabel = `${MONTHS_FR_IND[now.getMonth()]} ${now.getFullYear()}`
       if (fromDate && toDate) {
-        const fDay = String(fromDate.getDate()).padStart(2, '0')
-        const tDay = String(toDate.getDate()).padStart(2, '0')
+        const fDay = String(fromDate.getDate())
+        const tDay = String(toDate.getDate())
         const fMonth = MONTHS_FR_IND[fromDate.getMonth()]
         const tMonth = MONTHS_FR_IND[toDate.getMonth()]
         const fYear = fromDate.getFullYear()
@@ -173,15 +173,17 @@ export async function GET(request: NextRequest) {
           fYear === tYear
         ) {
           periodLabel = `${fMonth} ${fYear}`
+        } else if (fYear === tYear && fromDate.getMonth() === toDate.getMonth()) {
+          periodLabel = `${fDay} - ${tDay} ${tMonth} ${fYear}`
         } else if (fYear === tYear) {
-          periodLabel = `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+          periodLabel = `${fDay} ${fMonth} - ${tDay} ${tMonth} ${fYear}`
         } else {
-          periodLabel = `${fDay} ${fMonth} ${fYear} – ${tDay} ${tMonth} ${tYear}`
+          periodLabel = `${fDay} ${fMonth} ${fYear} - ${tDay} ${tMonth} ${tYear}`
         }
       } else if (fromDate) {
-        periodLabel = `${String(fromDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[fromDate.getMonth()]} ${fromDate.getFullYear()}`
+        periodLabel = `${String(fromDate.getDate())} ${MONTHS_FR_IND[fromDate.getMonth()]} ${fromDate.getFullYear()}`
       } else if (toDate) {
-        periodLabel = `${String(toDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[toDate.getMonth()]} ${toDate.getFullYear()}`
+        periodLabel = `${String(toDate.getDate())} ${MONTHS_FR_IND[toDate.getMonth()]} ${toDate.getFullYear()}`
       }
 
       // Statistiques globales
@@ -397,7 +399,9 @@ export async function GET(request: NextRequest) {
 
     let orgManagerUids: string[] = isOrgView ? [] : [callerUid]
     let exportScopeLabel = callerDisplaySegment ? callerDisplaySegment.toUpperCase() : 'ÉQUIPE' // libellé titre rapport
-    const tmMap = new Map<string, { uid: string; name: string; email: string }>()
+    let exportLevel: 'coordinators' | 'supervisors' | 'members' = isOrgView ? 'supervisors' : 'members'
+    const tmMap = new Map<string, { uid: string; name: string; email: string; seniorManagerUid?: string | null }>()
+    let scopedSeniorManagers: OrgManagerScopeRecord[] = []
 
     if (isOrgView) {
       const access = resolveCallerSegmentAccess({
@@ -450,22 +454,32 @@ export async function GET(request: NextRequest) {
         })
 
         scoped.teamManagers.forEach((tm) => {
-          tmMap.set(tm.uid, { uid: tm.uid, name: tm.name, email: tm.email })
+          tmMap.set(tm.uid, {
+            uid: tm.uid,
+            name: tm.name,
+            email: tm.email,
+            seniorManagerUid: tm.seniorManagerUid || null
+          })
         })
 
+        scopedSeniorManagers = scoped.seniorManagers
         orgManagerUids = scoped.effectiveTeamManagerUids
 
         if (scoped.selectedFilterManager) {
           exportScopeLabel = scoped.selectedFilterManager.name.toUpperCase()
+          exportLevel =
+            scoped.selectedFilterManager.orgRole === 'senior_manager' ? 'supervisors' : 'members'
         } else if (isExecutive) {
           exportScopeLabel = access.isDirectionScope
             ? 'TOUS LES SEGMENTS'
             : (access.targetSegment || 'SEGMENT').toUpperCase()
+          exportLevel = 'coordinators'
         } else {
           exportScopeLabel =
             access.isObservingInterim && access.targetSegment
               ? `${access.targetSegment.toUpperCase()} (INTÉRIM)`
               : (callerDisplaySegment || 'ÉQUIPES').toUpperCase()
+          exportLevel = 'supervisors'
         }
       }
     }
@@ -541,32 +555,32 @@ export async function GET(request: NextRequest) {
       /* ignore */
     }
 
-    // ── Formatage de la période brute en libellé lisible ───────────────────
+    // ── Formatage de la période brute en libellé court (ex: "1 - 26 Nov 2026") ──
     const MONTHS_FR = [
-      'Janvier',
-      'Février',
-      'Mars',
-      'Avril',
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
       'Mai',
       'Juin',
-      'Juillet',
+      'Juil',
       'Août',
-      'Septembre',
-      'Octobre',
-      'Novembre',
-      'Décembre'
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc'
     ]
     function formatPeriod(raw: string | null, from: Date | null, to: Date | null): string {
       // 1. Priorité absolue : si des dates de début et/ou de fin ont été explicitement choisies
       if (from && to) {
-        const fDay = String(from.getDate()).padStart(2, '0')
-        const tDay = String(to.getDate()).padStart(2, '0')
+        const fDay = String(from.getDate())
+        const tDay = String(to.getDate())
         const fMonth = MONTHS_FR[from.getMonth()]
         const tMonth = MONTHS_FR[to.getMonth()]
         const fYear = from.getFullYear()
         const tYear = to.getFullYear()
 
-        // Jour unique (ex. "01 Oct 2026")
+        // Jour unique (ex. "26 Nov 2026")
         if (from.toDateString() === to.toDateString()) {
           return `${fDay} ${fMonth} ${fYear}`
         }
@@ -582,28 +596,28 @@ export async function GET(request: NextRequest) {
           return `${fMonth} ${fYear}`
         }
 
-        // Plage au sein du même mois (ex. "01 Oct – 02 Oct 2026")
+        // Plage au sein du même mois (ex. "1 - 26 Nov 2026")
         if (fYear === tYear && from.getMonth() === to.getMonth()) {
-          return `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+          return `${fDay} - ${tDay} ${tMonth} ${fYear}`
         }
 
-        // Plage sur des mois différents de la même année
+        // Plage sur des mois différents de la même année (ex. "1 Oct - 26 Nov 2026")
         if (fYear === tYear) {
-          return `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+          return `${fDay} ${fMonth} - ${tDay} ${tMonth} ${fYear}`
         }
 
         // Années différentes
-        return `${fDay} ${fMonth} ${fYear} – ${tDay} ${tMonth} ${tYear}`
+        return `${fDay} ${fMonth} ${fYear} - ${tDay} ${tMonth} ${tYear}`
       }
 
       if (from) {
-        const fDay = String(from.getDate()).padStart(2, '0')
+        const fDay = String(from.getDate())
         const fMonth = MONTHS_FR[from.getMonth()]
         return `${fDay} ${fMonth} ${from.getFullYear()}`
       }
 
       if (to) {
-        const tDay = String(to.getDate()).padStart(2, '0')
+        const tDay = String(to.getDate())
         const tMonth = MONTHS_FR[to.getMonth()]
         return `${tDay} ${tMonth} ${to.getFullYear()}`
       }
@@ -823,8 +837,17 @@ export async function GET(request: NextRequest) {
         return true
       })
       if (memberId) filtered = filtered.filter((i) => i.assignedTo === memberId)
+    } else if (exportLevel === 'members') {
+      // Coordinateur ou Exécutif filtrant un Superviseur précis -> descendre au niveau Commerciaux
+      filtered = filtered.filter((i) => {
+        if (!i.managerUid || !orgManagerUids.includes(i.managerUid)) return false
+        if (!i.assignedTo || i.assignedTo === '__manager__') return false
+        if (orgManagerUids.includes(i.assignedTo) || supportAgentUids.has(i.assignedTo)) return false
+        return true
+      })
+      if (memberId) filtered = filtered.filter((i) => i.assignedTo === memberId)
     } else {
-      // Pour le Senior Manager : exporter les opportunités rattachées aux Team Managers du scope
+      // Pour le Senior Manager / Exécutif : exporter les opportunités rattachées aux Team Managers du scope
       filtered = filtered.filter((i) => {
         if (!i.managerUid || !orgManagerUids.includes(i.managerUid)) return false
         if (i.assignedTo && supportAgentUids.has(i.assignedTo)) return false
@@ -876,7 +899,7 @@ export async function GET(request: NextRequest) {
 
     const byMember: Record<string, MemberStat> = {}
 
-    if (isOrgView) {
+    if (isOrgView && exportLevel !== 'members') {
       // Récupérer les objectifs consolidés de chaque Team Manager
       const tmTargetsMap = new Map<
         string,
@@ -910,40 +933,92 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // Initialiser chaque Team Manager dans la synthèse
-      orgManagerUids.forEach((tmUid) => {
-        const tm = tmMap.get(tmUid)
-        const tgt = tmTargetsMap.get(tmUid)
-        byMember[tmUid] = {
-          uid: tmUid,
-          memberName: tm?.name || 'Superviseur',
-          total: 0,
-          prospection: 0,
-          negociation: 0,
-          conclue: 0,
-          conversionRate: 0,
-          revenue: 0,
-          targetVolume: tgt?.targetVolume && tgt.targetVolume > 0 ? tgt.targetVolume : null,
-          targetValue: tgt?.targetValue && tgt.targetValue > 0 ? tgt.targetValue : null,
-          // La colonne "Période" reflète uniformément la période du rapport pour l'ensemble des TM
-          period: formatPeriod(referencePeriod, fromDate, toDate)
+      if (exportLevel === 'coordinators') {
+        // Niveau Manager Exécutif : une ligne par Coordinateur (consolidant ses Superviseurs)
+        scopedSeniorManagers.forEach((sm) => {
+          const label = sm.displaySegment ? `${sm.name} (${sm.displaySegment})` : sm.name
+          byMember[sm.uid] = {
+            uid: sm.uid,
+            memberName: label,
+            total: 0,
+            prospection: 0,
+            negociation: 0,
+            conclue: 0,
+            conversionRate: 0,
+            revenue: 0,
+            targetVolume: null,
+            targetValue: null,
+            period: formatPeriod(referencePeriod, fromDate, toDate)
+          }
+        })
+
+        // Agréger les objectifs des Superviseurs sous leur Coordinateur respectif
+        orgManagerUids.forEach((tmUid) => {
+          const smUid = tmMap.get(tmUid)?.seniorManagerUid
+          const tgt = tmTargetsMap.get(tmUid)
+          if (smUid && byMember[smUid] && tgt) {
+            if (tgt.targetVolume && tgt.targetVolume > 0) {
+              byMember[smUid].targetVolume = (byMember[smUid].targetVolume ?? 0) + tgt.targetVolume
+            }
+            if (tgt.targetValue && tgt.targetValue > 0) {
+              byMember[smUid].targetValue = (byMember[smUid].targetValue ?? 0) + tgt.targetValue
+            }
+          }
+        })
+
+        // Agréger les opportunités des Superviseurs sous leur Coordinateur respectif
+        for (const item of filtered) {
+          const tmUid = item.managerUid
+          const smUid = tmUid ? tmMap.get(tmUid)?.seniorManagerUid : null
+          if (!smUid || !byMember[smUid]) continue
+
+          const stat = byMember[smUid]
+          stat.total++
+          const itemAmount = item.amount ?? 0
+          const ns = normalizeStatus(item.status)
+          if (ns === 'Prospection') stat.prospection++
+          else if (ns === 'Négociation') stat.negociation++
+          else if (ns === 'Conclue') {
+            stat.conclue++
+            stat.revenue += itemAmount
+          }
         }
-      })
+      } else {
+        // Niveau Coordinateur : initialiser chaque Superviseur dans la synthèse
+        orgManagerUids.forEach((tmUid) => {
+          const tm = tmMap.get(tmUid)
+          const tgt = tmTargetsMap.get(tmUid)
+          byMember[tmUid] = {
+            uid: tmUid,
+            memberName: tm?.name || 'Superviseur',
+            total: 0,
+            prospection: 0,
+            negociation: 0,
+            conclue: 0,
+            conversionRate: 0,
+            revenue: 0,
+            targetVolume: tgt?.targetVolume && tgt.targetVolume > 0 ? tgt.targetVolume : null,
+            targetValue: tgt?.targetValue && tgt.targetValue > 0 ? tgt.targetValue : null,
+            // La colonne "Période" reflète uniformément la période du rapport pour l'ensemble des TM
+            period: formatPeriod(referencePeriod, fromDate, toDate)
+          }
+        })
 
-      // Agréger les opportunités de pipeline par Team Manager
-      for (const item of filtered) {
-        const tmUid = item.managerUid
-        if (!tmUid || !byMember[tmUid]) continue
+        // Agréger les opportunités de pipeline par Superviseur
+        for (const item of filtered) {
+          const tmUid = item.managerUid
+          if (!tmUid || !byMember[tmUid]) continue
 
-        const stat = byMember[tmUid]
-        stat.total++
-        const itemAmount = item.amount ?? 0
-        const ns = normalizeStatus(item.status)
-        if (ns === 'Prospection') stat.prospection++
-        else if (ns === 'Négociation') stat.negociation++
-        else if (ns === 'Conclue') {
-          stat.conclue++
-          stat.revenue += itemAmount
+          const stat = byMember[tmUid]
+          stat.total++
+          const itemAmount = item.amount ?? 0
+          const ns = normalizeStatus(item.status)
+          if (ns === 'Prospection') stat.prospection++
+          else if (ns === 'Négociation') stat.negociation++
+          else if (ns === 'Conclue') {
+            stat.conclue++
+            stat.revenue += itemAmount
+          }
         }
       }
     } else {
@@ -1125,7 +1200,11 @@ export async function GET(request: NextRequest) {
 
     // Colonnes header (ligne 4) — SANS "Access ID"
     const summaryHeaders = [
-      isOrgView ? 'Superviseur' : 'Membre',
+      exportLevel === 'coordinators'
+        ? 'Coordinateur'
+        : exportLevel === 'supervisors'
+          ? 'Superviseur'
+          : 'Commercial',
       'Période',
       'Total Leads',
       'Prospection',
