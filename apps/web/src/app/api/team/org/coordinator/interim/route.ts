@@ -76,11 +76,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Corps de requête JSON invalide' }, { status: 400 })
     }
 
-    const { coordinatorUid, action, segment, zone } = body as {
+    const { coordinatorUid, action, segment, zone, targetCoordinatorUid } = body as {
       coordinatorUid?: string
       action?: 'assign' | 'remove'
       segment?: string
-      zone?: string
+      zone?: string | null
+      targetCoordinatorUid?: string | null
     }
 
     if (!coordinatorUid || typeof coordinatorUid !== 'string') {
@@ -95,52 +96,112 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Le segment d’intérim est requis' }, { status: 400 })
     }
 
-    const targetUserDoc = await adminDb.collection('users').doc(coordinatorUid).get()
-    if (!targetUserDoc.exists) {
-      return NextResponse.json({ message: 'Coordinateur introuvable' }, { status: 404 })
-    }
-
-    const targetData = targetUserDoc.data() || {}
-    if (targetData.orgCode !== orgCode || targetData.orgRole !== 'senior_manager') {
-      return NextResponse.json(
-        { message: 'L’utilisateur ciblé n’est pas un Coordinateur de votre organisation' },
-        { status: 400 }
-      )
-    }
-
     const cleanSegment = segment.trim().toUpperCase()
     const cleanZone = typeof zone === 'string' ? zone.trim() : ''
     const cleanDisplay = cleanZone ? `${cleanSegment} (${cleanZone})` : cleanSegment
 
-    const existingInterims = Array.isArray(targetData.interimSegments) ? targetData.interimSegments : []
-
-    let updatedInterims: any[]
-    if (action === 'assign') {
-      // Éviter les doublons
-      const filtered = existingInterims.filter((i: any) => {
-        const itemSeg = typeof i === 'string' ? i : i.displaySegment || i.segment
-        return itemSeg?.trim().toLowerCase() !== cleanDisplay.toLowerCase()
-      })
-      updatedInterims = [
-        ...filtered,
-        {
-          segment: cleanSegment,
-          zone: cleanZone || null,
-          displaySegment: cleanDisplay,
-          assignedAt: new Date().toISOString(),
-          assignedByUid: callerUid
-        }
-      ]
-    } else {
-      updatedInterims = existingInterims.filter((i: any) => {
-        const itemSeg = typeof i === 'string' ? i : i.displaySegment || i.segment
-        return itemSeg?.trim().toLowerCase() !== cleanDisplay.toLowerCase()
-      })
+    const matchesInterimEntry = (i: any): boolean => {
+      if (typeof i === 'string') {
+        return i.trim().toLowerCase() === cleanDisplay.toLowerCase()
+      }
+      const itemDisplay = (i?.displaySegment || (i?.zone ? `${i.segment} (${i.zone})` : i?.segment) || '')
+        .trim()
+        .toLowerCase()
+      if (itemDisplay === cleanDisplay.toLowerCase()) return true
+      // Fallback si la zone n'a pas été passée explicitement mais un seul segment correspond
+      if (!cleanZone && (i?.segment || '').trim().toLowerCase() === cleanSegment.toLowerCase()) {
+        return true
+      }
+      return false
     }
 
-    await adminDb.collection('users').doc(coordinatorUid).update({
-      interimSegments: updatedInterims,
-      updatedAt: new Date()
+    const cleanTargetUid =
+      action === 'remove' && typeof targetCoordinatorUid === 'string' && targetCoordinatorUid.trim()
+        ? targetCoordinatorUid.trim()
+        : null
+
+    if (cleanTargetUid && cleanTargetUid === coordinatorUid) {
+      return NextResponse.json(
+        { message: 'Le Coordinateur destinataire doit être différent du Coordinateur actuel.' },
+        { status: 400 }
+      )
+    }
+
+    const sourceRef = adminDb.collection('users').doc(coordinatorUid)
+    const targetRef = cleanTargetUid ? adminDb.collection('users').doc(cleanTargetUid) : null
+
+    const txResult = await adminDb.runTransaction(async (tx) => {
+      const sourceDoc = await tx.get(sourceRef)
+      if (!sourceDoc.exists) {
+        throw new Error('NOT_FOUND:Coordinateur introuvable')
+      }
+      const sourceData = sourceDoc.data() || {}
+      if (sourceData.orgCode !== orgCode || sourceData.orgRole !== 'senior_manager') {
+        throw new Error('BAD_REQUEST:L’utilisateur ciblé n’est pas un Coordinateur de votre organisation')
+      }
+
+      const existingInterims = Array.isArray(sourceData.interimSegments) ? sourceData.interimSegments : []
+      const nowIso = new Date().toISOString()
+
+      if (action === 'assign') {
+        const filtered = existingInterims.filter((i: any) => !matchesInterimEntry(i))
+        const updatedInterims = [
+          ...filtered,
+          {
+            segment: cleanSegment,
+            zone: cleanZone || null,
+            displaySegment: cleanDisplay,
+            assignedAt: nowIso,
+            assignedByUid: callerUid
+          }
+        ]
+        tx.update(sourceRef, { interimSegments: updatedInterims, updatedAt: new Date() })
+        return {
+          updatedSourceInterims: updatedInterims,
+          updatedTargetInterims: null as any[] | null,
+          targetName: null as string | null
+        }
+      }
+
+      // action === 'remove'
+      const removedItem = existingInterims.find((i: any) => matchesInterimEntry(i))
+      const updatedSourceInterims = existingInterims.filter((i: any) => !matchesInterimEntry(i))
+
+      let updatedTargetInterims: any[] | null = null
+      let targetName: string | null = null
+
+      if (targetRef) {
+        const destDoc = await tx.get(targetRef)
+        if (!destDoc.exists) {
+          throw new Error('NOT_FOUND:Coordinateur destinataire introuvable')
+        }
+        const destData = destDoc.data() || {}
+        if (destData.orgCode !== orgCode || destData.orgRole !== 'senior_manager') {
+          throw new Error('BAD_REQUEST:Le destinataire sélectionné n’est pas un Coordinateur de votre organisation')
+        }
+        targetName = destData.name || destData.displayName || destData.email || 'Coordinateur'
+        const destInterims = Array.isArray(destData.interimSegments) ? destData.interimSegments : []
+        const dedupedDest = destInterims.filter((i: any) => !matchesInterimEntry(i))
+        const reassignedPayload =
+          removedItem && typeof removedItem === 'object'
+            ? {
+                ...removedItem,
+                assignedAt: nowIso,
+                assignedByUid: callerUid
+              }
+            : {
+                segment: cleanSegment,
+                zone: cleanZone || null,
+                displaySegment: cleanDisplay,
+                assignedAt: nowIso,
+                assignedByUid: callerUid
+              }
+        updatedTargetInterims = [...dedupedDest, reassignedPayload]
+        tx.update(targetRef, { interimSegments: updatedTargetInterims, updatedAt: new Date() })
+      }
+
+      tx.update(sourceRef, { interimSegments: updatedSourceInterims, updatedAt: new Date() })
+      return { updatedSourceInterims, updatedTargetInterims, targetName }
     })
 
     return NextResponse.json({
@@ -148,11 +209,22 @@ export async function POST(request: NextRequest) {
       message:
         action === 'assign'
           ? `Intérim assigné au Coordinateur pour le segment « ${cleanDisplay} »`
-          : `Intérim retiré pour le segment « ${cleanDisplay} »`,
+          : cleanTargetUid
+            ? `Intérim « ${cleanDisplay} » transféré à ${txResult.targetName} sans perte de données.`
+            : `Intérim retiré pour le segment « ${cleanDisplay} »`,
       coordinatorUid,
-      interimSegments: updatedInterims
+      interimSegments: txResult.updatedSourceInterims,
+      targetCoordinatorUid: cleanTargetUid,
+      targetInterimSegments: txResult.updatedTargetInterims
     })
   } catch (error: any) {
+    const msg = error?.message || ''
+    if (msg.startsWith('NOT_FOUND:')) {
+      return NextResponse.json({ message: msg.replace('NOT_FOUND:', '') }, { status: 404 })
+    }
+    if (msg.startsWith('BAD_REQUEST:')) {
+      return NextResponse.json({ message: msg.replace('BAD_REQUEST:', '') }, { status: 400 })
+    }
     console.error('[POST /api/team/org/coordinator/interim] error:', error)
     return NextResponse.json({ message: error.message || 'Erreur interne' }, { status: 500 })
   }

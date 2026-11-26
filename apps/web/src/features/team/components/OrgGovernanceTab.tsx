@@ -155,6 +155,13 @@ export function OrgGovernanceTab() {
   const [interimSegmentInput, setInterimSegmentInput] = useState('')
   const [interimZoneInput, setInterimZoneInput] = useState('')
   const [savingInterim, setSavingInterim] = useState(false)
+  const [interimRemoveTarget, setInterimRemoveTarget] = useState<{
+    segment: string
+    zone: string | null
+    displaySegment: string
+  } | null>(null)
+  const [interimRemoveMode, setInterimRemoveMode] = useState<'reassign' | 'close'>('reassign')
+  const [interimReassignUid, setInterimReassignUid] = useState('')
   const coordinatorDropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -694,6 +701,9 @@ export function OrgGovernanceTab() {
         })
         return { ...prev, coordinators: updatedCoordinators }
       })
+      setSelectedCoordinator((prev) =>
+        prev ? { ...prev, interimSegments: data.interimSegments } : null
+      )
 
       pushToast({
         type: 'success',
@@ -713,8 +723,22 @@ export function OrgGovernanceTab() {
     }
   }
 
-  const handleRemoveInterim = async (segToRemove: string) => {
+  const openRemoveInterimModal = (it: { segment: string; zone?: string | null; displaySegment?: string | null }) => {
     if (!selectedCoordinator) return
+    const displaySeg = it.displaySegment || (it.zone ? `${it.segment} (${it.zone})` : it.segment)
+    const otherCoords = (orgData?.coordinators || []).filter((c) => c.uid !== selectedCoordinator.uid)
+    setInterimRemoveTarget({
+      segment: it.segment,
+      zone: it.zone || null,
+      displaySegment: displaySeg
+    })
+    setInterimRemoveMode(otherCoords.length > 0 ? 'reassign' : 'close')
+    setInterimReassignUid(otherCoords[0]?.uid || '')
+  }
+
+  const handleConfirmRemoveInterim = async () => {
+    if (!selectedCoordinator || !interimRemoveTarget) return
+    if (interimRemoveMode === 'reassign' && !interimReassignUid) return
     setSavingInterim(true)
     try {
       const token = await user?.getIdToken()
@@ -724,7 +748,9 @@ export function OrgGovernanceTab() {
         body: JSON.stringify({
           coordinatorUid: selectedCoordinator.uid,
           action: 'remove',
-          segment: segToRemove
+          segment: interimRemoveTarget.segment,
+          zone: interimRemoveTarget.zone,
+          targetCoordinatorUid: interimRemoveMode === 'reassign' ? interimReassignUid : undefined
         })
       })
       const data = await res.json()
@@ -734,19 +760,26 @@ export function OrgGovernanceTab() {
         if (!prev) return prev
         const updatedCoordinators = (prev.coordinators || []).map((c: any) => {
           if (c.uid === selectedCoordinator.uid) {
-            return {
-              ...c,
-              interimSegments: data.interimSegments
-            }
+            return { ...c, interimSegments: data.interimSegments }
+          }
+          if (data.targetCoordinatorUid && c.uid === data.targetCoordinatorUid && data.targetInterimSegments) {
+            return { ...c, interimSegments: data.targetInterimSegments }
           }
           return c
         })
         return { ...prev, coordinators: updatedCoordinators }
       })
+      setSelectedCoordinator((prev) =>
+        prev ? { ...prev, interimSegments: data.interimSegments } : null
+      )
+      setInterimRemoveTarget(null)
 
       pushToast({
         type: 'success',
-        title: lang === 'en' ? 'Interim removed' : 'Intérim retiré',
+        title:
+          interimRemoveMode === 'reassign'
+            ? (lang === 'en' ? 'Interim reassigned' : 'Intérim réattribué')
+            : (lang === 'en' ? 'Interim removed' : 'Intérim retiré'),
         description: data.message
       })
     } catch (err: any) {
@@ -1252,7 +1285,9 @@ export function OrgGovernanceTab() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
                               <div className="rounded-lg border border-border bg-secondary/20 p-2">
-                                <span className="text-muted-foreground block text-[10.5px] font-semibold">{t('team.members.email')}</span>
+                                <span className="text-muted-foreground block text-[10.5px] font-semibold">
+                                  {lang === 'en' ? 'Email' : 'E-mail'}
+                                </span>
                                 <span className="font-bold text-foreground truncate block">{selectedCoordinator.email}</span>
                               </div>
                               <div className="rounded-lg border border-border bg-secondary/20 p-2">
@@ -1380,7 +1415,7 @@ export function OrgGovernanceTab() {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => void handleRemoveInterim(it.segment)}
+                                        onClick={() => openRemoveInterimModal(it)}
                                         disabled={savingInterim}
                                         className="text-[11px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 cursor-pointer px-2 py-0.5 rounded hover:bg-red-500/10"
                                       >
@@ -1388,6 +1423,128 @@ export function OrgGovernanceTab() {
                                       </button>
                                     </div>
                                   ))}
+
+                                  {interimRemoveTarget && (() => {
+                                    const otherCoordinators = (orgData?.coordinators || []).filter(
+                                      (c) => c.uid !== selectedCoordinator.uid
+                                    )
+                                    return (
+                                      <div className="mt-2 rounded-xl border-2 border-red-500/40 bg-card p-3.5 shadow-elevation-2 flex flex-col gap-2.5">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-[12px] font-bold text-foreground">
+                                            {lang === 'en'
+                                              ? `Remove interim: ${interimRemoveTarget.displaySegment}`
+                                              : `Retirer l’intérim : ${interimRemoveTarget.displaySegment}`}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => setInterimRemoveTarget(null)}
+                                            disabled={savingInterim}
+                                            className="text-[11px] font-bold text-muted-foreground hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded"
+                                          >
+                                            ✕
+                                          </button>
+                                        </div>
+
+                                        <div className="space-y-2 text-[11.5px]">
+                                          <label
+                                            className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${
+                                              interimRemoveMode === 'reassign'
+                                                ? 'border-amber-500/50 bg-amber-500/5'
+                                                : 'border-border bg-card'
+                                            } ${otherCoordinators.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                          >
+                                            <input
+                                              type="radio"
+                                              name="interim-remove-mode"
+                                              checked={interimRemoveMode === 'reassign'}
+                                              disabled={otherCoordinators.length === 0}
+                                              onChange={() => setInterimRemoveMode('reassign')}
+                                              className="mt-0.5"
+                                            />
+                                            <div className="flex-1 space-y-1.5">
+                                              <div className="font-semibold text-foreground">
+                                                {lang === 'en'
+                                                  ? 'Reassign this interim zone to another Coordinator'
+                                                  : 'Réattribuer cette zone à un autre Coordinateur'}
+                                              </div>
+                                              {interimRemoveMode === 'reassign' && otherCoordinators.length > 0 && (
+                                                <select
+                                                  value={interimReassignUid}
+                                                  onChange={(e) => setInterimReassignUid(e.target.value)}
+                                                  className="h-8 w-full rounded-lg border border-border bg-card px-2 text-[11.5px] text-foreground focus:border-amber-500 focus:outline-none"
+                                                >
+                                                  {otherCoordinators.map((coord) => (
+                                                    <option key={coord.uid} value={coord.uid}>
+                                                      {coord.name} — {coord.displaySegment || coord.segment || 'N/D'}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              )}
+                                              {otherCoordinators.length === 0 && (
+                                                <div className="text-[10.5px] text-muted-foreground">
+                                                  {lang === 'en'
+                                                    ? 'No other Coordinator available in the organization.'
+                                                    : 'Aucun autre Coordinateur disponible dans l’organisation.'}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </label>
+
+                                          <label
+                                            className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${
+                                              interimRemoveMode === 'close'
+                                                ? 'border-red-500/40 bg-red-500/5'
+                                                : 'border-border bg-card'
+                                            }`}
+                                          >
+                                            <input
+                                              type="radio"
+                                              name="interim-remove-mode"
+                                              checked={interimRemoveMode === 'close'}
+                                              onChange={() => setInterimRemoveMode('close')}
+                                              className="mt-0.5"
+                                            />
+                                            <div className="flex-1">
+                                              <div className="font-semibold text-foreground">
+                                                {lang === 'en'
+                                                  ? 'Close interim without reassignment (new titular assigned)'
+                                                  : 'Retirer sans réaffectation (fin d’intérim / reprise par un titulaire)'}
+                                              </div>
+                                              <div className="text-[10.5px] text-muted-foreground mt-0.5">
+                                                {lang === 'en'
+                                                  ? 'No data (Supervisors, salespeople, opportunities, clients) will be deleted.'
+                                                  : 'Aucune donnée (Superviseurs, commerciaux, opportunités, clients) ne sera supprimée.'}
+                                              </div>
+                                            </div>
+                                          </label>
+                                        </div>
+
+                                        <div className="flex items-center justify-end gap-2 pt-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => setInterimRemoveTarget(null)}
+                                            disabled={savingInterim}
+                                            className="rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+                                          >
+                                            {lang === 'en' ? 'Cancel' : 'Annuler'}
+                                          </button>
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="primary"
+                                            loading={savingInterim}
+                                            disabled={interimRemoveMode === 'reassign' && !interimReassignUid}
+                                            onClick={() => void handleConfirmRemoveInterim()}
+                                          >
+                                            {interimRemoveMode === 'reassign'
+                                              ? (lang === 'en' ? 'Confirm & Reassign' : 'Confirmer et réattribuer')
+                                              : (lang === 'en' ? 'Confirm Removal' : 'Confirmer le retrait')}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )
+                                  })()}
                                 </div>
                               ) : (
                                 <div className="text-[11px] text-muted-foreground italic py-0.5">
