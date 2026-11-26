@@ -58,6 +58,11 @@ type Thread = {
   profileChangeStatus?: 'approved' | 'rejected' | 'pending' | null
   profileChangeToken?: string
   profileChangeRejectedReason?: string
+  emailChangeStatus?: 'approved' | 'rejected' | 'pending' | null
+  requestedNewEmail?: string
+  managementContactName?: string
+  managementContactEmail?: string
+  emailChangeRejectedReason?: string
 }
 
 type Message = {
@@ -312,6 +317,61 @@ export default function AdminSupportPage() {
     } catch (err: any) {
       console.error('Approve profile error:', err)
       setError(err.message || "Erreur lors de l'approbation.")
+    } finally {
+      setApproving(false)
+    }
+  }
+
+  async function handleProcessEmailChange(thread: Thread, action: 'approve' | 'reject') {
+    if (!user || !thread.id) return
+    let rejectionReason: string | undefined
+    if (action === 'reject') {
+      const promptVal = window.prompt(
+        'Indiquez le motif du refus :',
+        "Avis favorable du Management de l'organisation non confirmé."
+      )
+      if (promptVal === null) return
+      rejectionReason = promptVal
+    }
+
+    setApproving(true)
+    setError(null)
+    setActionSuccess(null)
+
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/admin/support/email-change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ threadId: thread.id, action, rejectionReason })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors du traitement de la demande.')
+      }
+
+      setActionSuccess(
+        action === 'approve'
+          ? `Adresse e-mail du SM1 mise à jour vers ${data.newEmail}.`
+          : "Demande de modification d'adresse e-mail refusée."
+      )
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'resolved',
+              emailChangeStatus: action === 'approve' ? 'approved' : 'rejected',
+              emailChangeRejectedReason: rejectionReason
+            }
+          : null
+      )
+    } catch (err: any) {
+      console.error('Process email change error:', err)
+      setError(err.message || 'Erreur lors du traitement de la demande.')
     } finally {
       setApproving(false)
     }
@@ -869,6 +929,24 @@ export default function AdminSupportPage() {
                           >
                             <UserCog size={10} />
                             <span>Modif Profil</span>
+                          </span>
+                        )}
+                        {t.type === 'email_change_request' && (
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              padding: '1px 5px',
+                              background: 'rgba(245, 158, 11, 0.15)',
+                              color: '#fbbf24',
+                              borderRadius: 4,
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                          >
+                            <Mail size={10} />
+                            <span>Email SM1</span>
                           </span>
                         )}
                         {t.unreadByAdmin && (
@@ -1482,6 +1560,121 @@ export default function AdminSupportPage() {
                         </button>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {selected.type === 'email_change_request' && (
+                  <div
+                    style={{
+                      marginTop: 12,
+                      padding: '14px 16px',
+                      borderRadius: 8,
+                      background:
+                        selected.emailChangeStatus === 'approved'
+                          ? 'rgba(16, 185, 129, 0.08)'
+                          : selected.emailChangeStatus === 'rejected'
+                            ? 'rgba(239, 68, 68, 0.08)'
+                            : 'rgba(245, 158, 11, 0.08)',
+                      border: `1px solid ${
+                        selected.emailChangeStatus === 'approved'
+                          ? 'rgba(16, 185, 129, 0.3)'
+                          : selected.emailChangeStatus === 'rejected'
+                            ? 'rgba(239, 68, 68, 0.3)'
+                            : 'rgba(245, 158, 11, 0.3)'
+                      }`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 12
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color:
+                            selected.emailChangeStatus === 'approved'
+                              ? '#34d399'
+                              : selected.emailChangeStatus === 'rejected'
+                                ? '#f87171'
+                                : '#fbbf24',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          marginBottom: 3
+                        }}
+                      >
+                        <Mail size={16} />
+                        <span>
+                          {selected.emailChangeStatus === 'approved'
+                            ? `Adresse e-mail SM1 mise à jour (${selected.requestedNewEmail})`
+                            : selected.emailChangeStatus === 'rejected'
+                              ? "Demande de modification d'e-mail SM1 refusée"
+                              : `Demande de modification d'e-mail SM1 → ${selected.requestedNewEmail || ''}`}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          lineHeight: 1.5
+                        }}
+                      >
+                        {selected.emailChangeStatus === 'approved'
+                          ? 'Validée après avis favorable du Management.'
+                          : selected.emailChangeStatus === 'rejected'
+                            ? `Motif : ${selected.emailChangeRejectedReason || 'Non confirmé.'}`
+                            : `Contact Management à vérifier : ${selected.managementContactName || 'N/D'} (${selected.managementContactEmail || 'N/D'}).`}
+                      </div>
+                    </div>
+
+                    {selected.emailChangeStatus !== 'approved' &&
+                      selected.emailChangeStatus !== 'rejected' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                          <button
+                            onClick={() => handleProcessEmailChange(selected, 'reject')}
+                            disabled={approving}
+                            style={{
+                              padding: '8px 14px',
+                              background: 'rgba(239, 68, 68, 0.12)',
+                              color: '#f87171',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: approving ? 'wait' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}
+                          >
+                            <X size={13} />
+                            <span>Rejeter</span>
+                          </button>
+                          <button
+                            onClick={() => handleProcessEmailChange(selected, 'approve')}
+                            disabled={approving}
+                            style={{
+                              padding: '8px 16px',
+                              background: '#059669',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: approving ? 'wait' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Valider (Avis Management OK)</span>
+                          </button>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>

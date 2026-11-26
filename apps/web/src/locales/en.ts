@@ -926,6 +926,17 @@ export const en = {
       'As a sales rep, your professional email address is managed by your organization and cannot be changed.',
     supportEmailLocked:
       'As a support agent, your professional email address is managed by your organization and cannot be changed.',
+    orgManagerEmailLocked:
+      'Email modification is not permitted for Executive Managers, Coordinators, or Supervisors. Only the primary Coordinator (SM1) can submit a formal request to Sales Companion 2.0 Support subject to Management approval.',
+    sm1EmailNotice:
+      'Any change to the SM1 email address is subject to validation by Sales Companion 2.0 Support following favorable approval from your organization Management.',
+    sm1EmailReasonPlaceholder: 'Official reason for the request (min. 10 characters)',
+    sm1MgmtNamePlaceholder: 'Management / Executive contact name *',
+    sm1MgmtEmailPlaceholder: 'Management / Executive contact email *',
+    sm1MgmtPhonePlaceholder: 'Management phone (optional)',
+    sm1EmailSubmitBtn: 'Submit request to Support',
+    sm1EmailRequestSuccess:
+      'Your request has been submitted to Sales Companion 2.0 Support. Redirecting to your ticket...',
     googleEmailNote:
       'Your account is linked to Google. Email address changes must be done from your Google account.',
     newEmailPlaceholder: 'New email address',

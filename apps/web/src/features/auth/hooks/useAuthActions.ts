@@ -220,9 +220,10 @@ export function useAuthActions() {
       if (!currentUser) throw new Error('Aucun utilisateur connecté')
 
       const tokenResult = await currentUser.getIdTokenResult().catch(() => null)
-      if (tokenResult?.claims?.role === 'member') {
+      const claimRole = tokenResult?.claims?.role as string | undefined
+      if (claimRole === 'member' || claimRole === 'support_agent' || claimRole === 'manager') {
         throw new Error(
-          'Votre adresse email professionnelle est gérée par votre organisation et ne peut pas être modifiée.'
+          "La modification directe de l'adresse e-mail n'est pas autorisée pour votre rôle. Seul le Coordinateur principal (SM1) peut soumettre une demande au Support."
         )
       }
 

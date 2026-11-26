@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { ArrowUpRight, Check, Lock } from 'lucide-react'
+import { ArrowUpRight, Check, Lock, ShieldCheck } from 'lucide-react'
 
 const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
@@ -62,6 +62,11 @@ export default function SettingsPage() {
   const [emailError, setEmailError] = useState<string | null>(null)
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null)
 
+  const [sm1Reason, setSm1Reason] = useState('')
+  const [mgmtName, setMgmtName] = useState('')
+  const [mgmtEmail, setMgmtEmail] = useState('')
+  const [mgmtPhone, setMgmtPhone] = useState('')
+
   const [pwLoading, setPwLoading] = useState(false)
   const [pwError, setPwError] = useState<string | null>(null)
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
@@ -69,23 +74,98 @@ export default function SettingsPage() {
   const isGoogleUser =
     auth.currentUser?.providerData.some((p) => p.providerId === 'google.com') ?? false
   const isSupport = user?.role === 'support_agent' || (user?.role as string) === 'support'
-  const isEmailLocked = user?.role === 'member' || isSupport
 
   // ── Hiérarchie organisationnelle ────────────────────────────────────
   const isSeniorManager = user?.orgRole === 'senior_manager' || !user?.orgRole
   const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
+  const isOrgManager = user?.role === 'manager'
+
+  const [isPrimarySmRemote, setIsPrimarySmRemote] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!user || user.role !== 'manager' || !(user as { orgCode?: string }).orgCode) {
+      setIsPrimarySmRemote(null)
+      return
+    }
+    let cancelled = false
+    user
+      .getIdToken()
+      .then((tok) =>
+        fetch('/api/team/org', { headers: { Authorization: `Bearer ${tok}` } }).then((r) =>
+          r.ok ? r.json() : null
+        )
+      )
+      .then((data) => {
+        if (!cancelled && data && typeof data.isPrimarySeniorManager === 'boolean') {
+          setIsPrimarySmRemote(data.isPrimarySeniorManager)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
+  // Seul le SM1 (initiateur technique de l'organisation) peut soumettre une demande au Support.
+  // Exécutifs, Coordinateurs invités, Superviseurs, Commerciaux et Agents Support sont verrouillés.
+  const isSM1 =
+    isOrgManager &&
+    user?.orgRole === 'senior_manager' &&
+    isPrimarySmRemote === true
+  const isEmailLocked = user?.role === 'member' || isSupport || (isOrgManager && !isSM1)
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newEmail) return
     if (isEmailLocked) {
-      setEmailError(t(isSupport ? 'settings.supportEmailLocked' : 'settings.memberEmailLocked'))
+      setEmailError(
+        t(
+          isSupport
+            ? 'settings.supportEmailLocked'
+            : isOrgManager
+              ? 'settings.orgManagerEmailLocked'
+              : 'settings.memberEmailLocked'
+        )
+      )
       return
     }
     setEmailLoading(true)
     setEmailError(null)
     setEmailSuccess(null)
     try {
+      if (isSM1 && user) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/support/email-change', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            newEmail,
+            reason: sm1Reason,
+            managementContactName: mgmtName,
+            managementContactEmail: mgmtEmail,
+            managementContactPhone: mgmtPhone
+          })
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          throw new Error(data.message || t('settings.emailUpdateError'))
+        }
+        const successMsg = t('settings.sm1EmailRequestSuccess')
+        setEmailSuccess(successMsg)
+        pushToast({ type: 'success', title: successMsg })
+        setNewEmail('')
+        setSm1Reason('')
+        setMgmtName('')
+        setMgmtEmail('')
+        setMgmtPhone('')
+        if (data.threadId) {
+          router.push(`${routes.support}?ticket=${encodeURIComponent(data.threadId)}`)
+        }
+        return
+      }
+
       await updateUserEmail(newEmail)
       setEmailSuccess(t('settings.emailUpdateSuccess'))
       setNewEmail('')
@@ -200,9 +280,71 @@ export default function SettingsPage() {
                     <span>
                       {isSupport
                         ? t('settings.supportEmailLocked')
-                        : t('settings.memberEmailLocked')}
+                        : isOrgManager
+                          ? t('settings.orgManagerEmailLocked')
+                          : t('settings.memberEmailLocked')}
                     </span>
                   </div>
+                ) : isSM1 ? (
+                  <form
+                    onSubmit={handleUpdateEmail}
+                    className="flex max-w-[520px] flex-col gap-3"
+                  >
+                    <div className="flex items-start gap-2.5 rounded-lg border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3 text-[12px] text-amber-900 dark:text-amber-200">
+                      <ShieldCheck size={15} className="mt-0.5 shrink-0 text-amber-700 dark:text-amber-400" />
+                      <span>{t('settings.sm1EmailNotice')}</span>
+                    </div>
+                    <Input
+                      type="email"
+                      placeholder={t('settings.newEmailPlaceholder')}
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      required
+                    />
+                    <Input
+                      type="text"
+                      placeholder={t('settings.sm1EmailReasonPlaceholder')}
+                      value={sm1Reason}
+                      onChange={(e) => setSm1Reason(e.target.value)}
+                      minLength={10}
+                      required
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <Input
+                        type="text"
+                        placeholder={t('settings.sm1MgmtNamePlaceholder')}
+                        value={mgmtName}
+                        onChange={(e) => setMgmtName(e.target.value)}
+                        required
+                      />
+                      <Input
+                        type="email"
+                        placeholder={t('settings.sm1MgmtEmailPlaceholder')}
+                        value={mgmtEmail}
+                        onChange={(e) => setMgmtEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Input
+                      type="tel"
+                      placeholder={t('settings.sm1MgmtPhonePlaceholder')}
+                      value={mgmtPhone}
+                      onChange={(e) => setMgmtPhone(e.target.value)}
+                    />
+                    {emailError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{emailError}</div>}
+                    {emailSuccess && (
+                      <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{emailSuccess}</div>
+                    )}
+                    <div>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        loading={emailLoading}
+                      >
+                        {t('settings.sm1EmailSubmitBtn')}
+                      </Button>
+                    </div>
+                  </form>
                 ) : (
                   <form
                     onSubmit={handleUpdateEmail}

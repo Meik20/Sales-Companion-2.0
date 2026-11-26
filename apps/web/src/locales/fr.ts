@@ -936,6 +936,17 @@ export const fr = {
       "En tant que commercial d'équipe, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
     supportEmailLocked:
       "En tant qu'agent de support, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
+    orgManagerEmailLocked:
+      "La modification de l'adresse e-mail n'est pas autorisée pour les Managers Exécutifs, Coordinateurs et Superviseurs. Seul le Coordinateur principal (SM1) peut soumettre une demande formelle au Support de Sales Companion 2.0 après avis favorable du Management.",
+    sm1EmailNotice:
+      "Toute modification de l'adresse e-mail du SM1 est soumise à une validation du Support de Sales Companion 2.0 après avis favorable du Management de l'organisation.",
+    sm1EmailReasonPlaceholder: 'Motif officiel de la demande (min. 10 caractères)',
+    sm1MgmtNamePlaceholder: 'Nom du responsable Management / Direction *',
+    sm1MgmtEmailPlaceholder: 'E-mail du Management / Direction *',
+    sm1MgmtPhonePlaceholder: 'Téléphone du Management (optionnel)',
+    sm1EmailSubmitBtn: 'Soumettre la demande au Support',
+    sm1EmailRequestSuccess:
+      'Votre demande a été transmise au Support de Sales Companion 2.0. Redirection vers votre ticket...',
     googleEmailNote:
       "Votre compte est associé à Google. Les modifications d'adresse e-mail doivent être effectuées depuis votre compte Google.",
     newEmailPlaceholder: 'Nouvelle adresse e-mail',
