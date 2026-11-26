@@ -117,16 +117,16 @@ export function TeamManagerPerformanceCard({
   // - Si vue globale (isGlobal) : objectifs consolidés du segment (orgPeriodReport) ou de l'équipe (tmPeriodReport)
   const periodTargets = !isGlobal
     ? (targets ?? (selectedManagerReport
-        ? {
-            targetVolume: selectedManagerReport.targetVolume ?? null,
-            targetValue: selectedManagerReport.targetValue ?? null,
-            period: activePeriod
-          }
-        : null))
+      ? {
+        targetVolume: selectedManagerReport.targetVolume ?? null,
+        targetValue: selectedManagerReport.targetValue ?? null,
+        period: activePeriod
+      }
+      : null))
     : onSelectPeriod
       ? (context === 'org'
-          ? (orgPeriodReport?.targets ?? targets)
-          : (tmPeriodReport?.targets ?? targets))
+        ? (orgPeriodReport?.targets ?? targets)
+        : (tmPeriodReport?.targets ?? targets))
       : targets
 
   // Bornes inconditionnelles de la période sélectionnée (du 1er à 00:00 au dernier jour à 23:59:59)
@@ -240,28 +240,28 @@ export function TeamManagerPerformanceCard({
 
   const periodConclueCount: number | null = onSelectPeriod
     ? (context === 'org'
-        ? (isGlobal
-            ? (orgPeriodReport?.globalCounts?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount))
-            : (selectedManagerReport?.stats?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount)))
-        : (tmPeriodReport?.totalConclue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.conclueCount)))
+      ? (isGlobal
+        ? (orgPeriodReport?.globalCounts?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount))
+        : (selectedManagerReport?.stats?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount)))
+      : (tmPeriodReport?.totalConclue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.conclueCount)))
     : stats.conclueCount
 
   const periodConcludedAmount: number | null = onSelectPeriod
     ? (context === 'org'
-        ? (isGlobal
-            ? (orgPeriodReport?.totalConcludedAmount ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount))
-            : (selectedManagerReport?.stats?.concludedAmount != null
-                ? selectedManagerReport.stats.concludedAmount
-                : (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount)))
-        : (tmPeriodReport?.totalRevenue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.concludedAmount)))
+      ? (isGlobal
+        ? (orgPeriodReport?.totalConcludedAmount ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount))
+        : (selectedManagerReport?.stats?.concludedAmount != null
+          ? selectedManagerReport.stats.concludedAmount
+          : (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount)))
+      : (tmPeriodReport?.totalRevenue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.concludedAmount)))
     : stats.concludedAmount
 
   const periodConversionRate = onSelectPeriod
     ? (context === 'org'
-        ? (isGlobal
-            ? (orgPeriodReport?.conversionRate ?? stats.conversionRate)
-            : stats.conversionRate)
-        : (tmPeriodReport?.overallConversionRate ?? stats.conversionRate))
+      ? (isGlobal
+        ? (orgPeriodReport?.conversionRate ?? stats.conversionRate)
+        : stats.conversionRate)
+      : (tmPeriodReport?.overallConversionRate ?? stats.conversionRate))
     : stats.conversionRate
 
   const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
@@ -329,12 +329,12 @@ export function TeamManagerPerformanceCard({
               >
                 {isGlobal
                   ? (interimZoneLabel
-                      ? interimZoneLabel
-                      : isTeamContext
-                        ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
-                        : observedSegment
-                          ? (lang === 'en' ? 'Global Segment Performance' : 'Performance Globale du Segment')
-                          : (t('pipeline.globalOrgPerformance') || 'Performance Globale des Équipes'))
+                    ? interimZoneLabel
+                    : isTeamContext
+                      ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
+                      : isExecutive && observedSegment
+                        ? (lang === 'en' ? 'Global Segment Performance' : 'Performance Globale du Segment')
+                        : (t('pipeline.globalOrgPerformance') || 'Performance Globale des Équipes'))
                   : (manager?.name || manager?.email)}
               </h4>
               <span
@@ -348,15 +348,15 @@ export function TeamManagerPerformanceCard({
                   fontWeight: 700
                 }}
               >
-                  {isGlobal
+                {isGlobal
                   ? (interimZoneLabel
-                      ? (lang === 'en' ? 'Interim' : 'Intérim')
-                      : isTeamContext
-                        ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
-                        : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
+                    ? (lang === 'en' ? 'Interim' : 'Intérim')
+                    : isTeamContext
+                      ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
+                      : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
                   : (manager?.isSenior
-                      ? (lang === 'en' ? 'Coordinator' : 'Coordinateur')
-                      : (t('sidebar.teamManagerRole') || (lang === 'en' ? 'Supervisor' : 'Superviseur')))}
+                    ? (lang === 'en' ? 'Coordinator' : 'Coordinateur')
+                    : (t('sidebar.teamManagerRole') || (lang === 'en' ? 'Supervisor' : 'Superviseur')))}
               </span>
               {!isGlobal && manager?.isSenior && Array.isArray(manager.interimSegments) && manager.interimSegments.length > 0 && (
                 <span
@@ -381,15 +381,15 @@ export function TeamManagerPerformanceCard({
                 content={
                   isGlobal
                     ? (isTeamContext
-                        ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
-                        : observedSegment
-                          ? (lang === 'en'
-                              ? 'Consolidated revenue and pipeline overview across the segment'
-                              : "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment")
-                          : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de vos équipes"))
+                      ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
+                      : isExecutive && observedSegment
+                        ? (lang === 'en'
+                          ? 'Consolidated revenue and pipeline overview across the segment'
+                          : "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment")
+                        : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de vos équipes"))
                     : (manager?.isSenior
-                        ? t('pipeline.seniorStagingDesc')
-                        : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"))
+                      ? t('pipeline.seniorStagingDesc')
+                      : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"))
                 }
                 size={13}
                 placement="right"
@@ -728,15 +728,15 @@ export function TeamManagerPerformanceCard({
           <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {stats.overdueCount > 0 || stats.stagnantCount > 0
               ? (isGlobal && !isTeamContext
-                  ? (lang === 'en' ? 'Follow-ups or stagnant leads requiring action' : 'Relances ou leads stagnants nécessitant attention')
-                  : (manager?.isSenior
-                      ? (lang === 'en' ? 'Follow-ups or stagnant leads in this coordination' : 'Relances ou leads stagnants dans cette coordination')
-                      : (lang === 'en' ? 'Follow-ups or stagnant leads on team' : "Relances expirées ou leads stagnants sur l'équipe")))
+                ? (lang === 'en' ? 'Follow-ups or stagnant leads requiring action' : 'Relances ou leads stagnants nécessitant attention')
+                : (manager?.isSenior
+                  ? (lang === 'en' ? 'Follow-ups or stagnant leads in this coordination' : 'Relances ou leads stagnants dans cette coordination')
+                  : (lang === 'en' ? 'Follow-ups or stagnant leads on team' : "Relances expirées ou leads stagnants sur l'équipe")))
               : (isGlobal && !isTeamContext
-                  ? t('pipeline.noOverdueOnOrg')
-                  : (manager?.isSenior
-                      ? t('pipeline.noOverdueOnCoordination')
-                      : t('pipeline.noOverdueOnTeam')))}
+                ? t('pipeline.noOverdueOnOrg')
+                : (manager?.isSenior
+                  ? t('pipeline.noOverdueOnCoordination')
+                  : t('pipeline.noOverdueOnTeam')))}
           </div>
         </div>
 
