@@ -81,6 +81,7 @@ export function ExecutiveInterimPipelineSection({
             selectedPeriod={period}
             countryCode={orgCountry}
             observedSegment={interimDisplay}
+            interimZoneLabel={interimDisplay}
           />
         )}
         {!interimQuery.isLoading && !interimQuery.data?.items?.length ? (

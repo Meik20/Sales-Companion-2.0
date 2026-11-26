@@ -834,7 +834,21 @@ export default function PipelinePage() {
                     ? (selectedManager.stats?.salespeopleCount ?? 0)
                     : (orgPipelineQuery.data?.totalSalespeopleCount ?? 0)
                 }
-                supervisorsCount={orgPipelineQuery.data?.totalSupervisorsCount}
+                supervisorsCount={
+                  selectedManager
+                    ? (selectedManager.isSenior
+                        ? (orgPipelineQuery.data?.managers || []).filter(
+                            (m) => !m.isSenior && (m as any).seniorManagerUid === selectedManager.uid
+                          ).length
+                        : 0)
+                    : orgPipelineQuery.data?.totalSupervisorsCount
+                }
+                isExecutive={isExecutive}
+                interimZoneLabel={
+                  isSeniorManager
+                    ? coordinatorSegmentsList.find((s) => s.segment === activeSegment && s.isInterim)?.display
+                    : undefined
+                }
                 currency={orgPipelineQuery.data?.currency}
                 selectedPeriod={activePeriod}
                 onSelectPeriod={setSelectedPeriod}

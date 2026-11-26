@@ -49,6 +49,12 @@ interface TeamManagerPerformanceCardProps {
   /** Segment observé par le Responsable Exécutif — garantit que la carte Réalisations
    *  se réinitialise correctement lors d'un changement de segment dans la vue Executive */
   observedSegment?: string
+  /** Indique si la vue courante est celle du Manager Exécutif (affiche le nombre de Coordinateurs en vue globale) */
+  isExecutive?: boolean
+  /** Nombre explicite de Coordinateurs (optionnel, calculé depuis managers sinon) */
+  coordinatorsCount?: number
+  /** Libellé de zone d'intérim sans titulaire (ex: "SOHO (Centre)") remplaçant "Performance Globale du Segment" */
+  interimZoneLabel?: string
 }
 
 export function TeamManagerPerformanceCard({
@@ -64,7 +70,10 @@ export function TeamManagerPerformanceCard({
   selectedPeriod,
   onSelectPeriod,
   countryCode,
-  observedSegment
+  observedSegment,
+  isExecutive = false,
+  coordinatorsCount,
+  interimZoneLabel
 }: TeamManagerPerformanceCardProps) {
   const { t, lang } = useTranslation()
   const { currency: fallbackCurrency } = useProspectingCountryDetails()
@@ -206,7 +215,7 @@ export function TeamManagerPerformanceCard({
 
     const teamManagersCount = supervisorsCount != null
       ? supervisorsCount
-      : (managers ? managers.filter((m) => !m.isSenior).length : 0)
+      : (managers ? managers.filter((m) => !m.isSenior && (m as any).orgRole !== 'executive').length : 0)
 
     return {
       totalCount: items.length,
@@ -319,11 +328,13 @@ export function TeamManagerPerformanceCard({
                 }}
               >
                 {isGlobal
-                  ? (isTeamContext
-                      ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
-                      : observedSegment
-                        ? (lang === 'en' ? 'Global Segment Performance' : 'Performance Globale du Segment')
-                        : (t('pipeline.globalOrgPerformance') || 'Performance Globale des Équipes'))
+                  ? (interimZoneLabel
+                      ? interimZoneLabel
+                      : isTeamContext
+                        ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
+                        : observedSegment
+                          ? (lang === 'en' ? 'Global Segment Performance' : 'Performance Globale du Segment')
+                          : (t('pipeline.globalOrgPerformance') || 'Performance Globale des Équipes'))
                   : (manager?.name || manager?.email)}
               </h4>
               <span
@@ -331,16 +342,18 @@ export function TeamManagerPerformanceCard({
                   fontSize: 10.5,
                   padding: '2px 9px',
                   borderRadius: 12,
-                  background: 'rgba(99, 102, 241, 0.12)',
-                  color: 'var(--primary, #4338ca)',
-                  border: '1px solid rgba(99, 102, 241, 0.28)',
+                  background: interimZoneLabel ? 'rgba(245, 158, 11, 0.14)' : 'rgba(99, 102, 241, 0.12)',
+                  color: interimZoneLabel ? '#d97706' : 'var(--primary, #4338ca)',
+                  border: interimZoneLabel ? '1px solid rgba(245, 158, 11, 0.35)' : '1px solid rgba(99, 102, 241, 0.28)',
                   fontWeight: 700
                 }}
               >
                   {isGlobal
-                  ? (isTeamContext
-                      ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
-                      : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
+                  ? (interimZoneLabel
+                      ? (lang === 'en' ? 'Interim' : 'Intérim')
+                      : isTeamContext
+                        ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
+                        : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
                   : (manager?.isSenior
                       ? (lang === 'en' ? 'Coordinator' : 'Coordinateur')
                       : (t('sidebar.teamManagerRole') || (lang === 'en' ? 'Supervisor' : 'Superviseur')))}
@@ -395,6 +408,23 @@ export function TeamManagerPerformanceCard({
             >
               {isGlobal ? (
                 <>
+                  {!isTeamContext && isExecutive && !interimZoneLabel && (() => {
+                    const effectiveCoordsCount =
+                      coordinatorsCount != null
+                        ? coordinatorsCount
+                        : (managers ? managers.filter((m) => m.isSenior).length : 0)
+                    return (
+                      <>
+                        <span>
+                          {effectiveCoordsCount}{' '}
+                          {lang === 'en'
+                            ? (effectiveCoordsCount > 1 ? 'Coordinators' : 'Coordinator')
+                            : (effectiveCoordsCount > 1 ? 'Coordinateurs' : 'Coordinateur')}
+                        </span>
+                        <span>•</span>
+                      </>
+                    )
+                  })()}
                   {!isTeamContext && (
                     <>
                       <span>
@@ -414,6 +444,17 @@ export function TeamManagerPerformanceCard({
                 </>
               ) : (
                 <>
+                  {manager?.isSenior && (
+                    <>
+                      <span>
+                        {stats.teamManagersCount}{' '}
+                        {stats.teamManagersCount > 1
+                          ? t('pipeline.teamManagerCount_other')
+                          : t('pipeline.teamManagerCount_one')}
+                      </span>
+                      <span>•</span>
+                    </>
+                  )}
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
                     {effectiveMemberCount}{' '}
