@@ -12,12 +12,12 @@ import { Phone, Mail, MapPin, Check, ShieldCheck } from 'lucide-react'
 type Props = { items: Company[] }
 
 const AVATAR_PALETTE = [
-  'bg-blue-500/12 text-blue-600 dark:text-blue-400 border-blue-500/25',
-  'bg-indigo-500/12 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
-  'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
-  'bg-amber-500/12 text-amber-600 dark:text-amber-400 border-amber-500/25',
-  'bg-violet-500/12 text-violet-600 dark:text-violet-400 border-violet-500/25',
-  'bg-rose-500/12 text-rose-600 dark:text-rose-400 border-rose-500/25'
+  'bg-primary/12 text-primary border-primary/25',
+  'bg-secondary text-foreground border-border',
+  'bg-emerald-500/12 text-emerald-700 dark:text-emerald-400 border-emerald-500/25',
+  'bg-amber-500/12 text-amber-700 dark:text-amber-400 border-amber-500/25',
+  'bg-sky-500/12 text-sky-700 dark:text-sky-400 border-sky-500/25',
+  'bg-rose-500/12 text-rose-700 dark:text-rose-400 border-rose-500/25'
 ]
 
 function getAvatarStyle(name: string): string {
@@ -32,22 +32,22 @@ function getAvatarStyle(name: string): string {
 function getSectorChipClass(sector: string): string {
   const s = sector.toLowerCase()
   if (s.includes('btp') || s.includes('construction')) {
-    return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+    return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
   }
   if (s.includes('tech') || s.includes('numérique')) {
-    return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+    return 'bg-primary/10 text-primary border-primary/20'
   }
   if (s.includes('agri') || s.includes('agro')) {
-    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+    return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
   }
   if (s.includes('transport') || s.includes('logistique')) {
-    return 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20'
+    return 'bg-secondary text-foreground border-border'
   }
   if (s.includes('santé') || s.includes('medical')) {
-    return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+    return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
   }
   if (s.includes('commerce') || s.includes('vente')) {
-    return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
+    return 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20'
   }
   return 'bg-primary/10 text-primary border-primary/20'
 }

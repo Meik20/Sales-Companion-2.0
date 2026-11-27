@@ -17,15 +17,15 @@ function formatRelativeTime(iso: string): string {
 }
 
 const notifIcon: Record<AdminNotification['type'], React.ReactNode> = {
-  payment_submitted: <CreditCard size={14} className="text-amber-400" />,
-  new_manager: <UserCheck size={14} className="text-blue-400" />,
-  support_ticket: <HeadphonesIcon size={14} className="text-violet-400" />
+  payment_submitted: <CreditCard size={14} className="text-amber-600 dark:text-amber-400" />,
+  new_manager: <UserCheck size={14} className="text-primary" />,
+  support_ticket: <HeadphonesIcon size={14} className="text-primary" />
 }
 
 const notifBg: Record<AdminNotification['type'], string> = {
   payment_submitted: 'bg-amber-500/10',
-  new_manager: 'bg-blue-500/10',
-  support_ticket: 'bg-violet-500/10'
+  new_manager: 'bg-primary/10',
+  support_ticket: 'bg-primary/10'
 }
 
 /**

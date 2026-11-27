@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { DataCard, ConfirmDialog } from '@/components/ui/index'
@@ -958,8 +958,8 @@ export function OrgGovernanceTab() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 dark:border-violet-500/30 bg-violet-100 dark:bg-violet-500/15 px-3 py-1 text-[12px] font-bold text-violet-800 dark:text-violet-300 shadow-xs">
-                  <Crown size={12} className="text-violet-700 dark:text-violet-400" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[12px] font-bold text-primary shadow-xs">
+                  <Crown size={12} className="text-primary" />
                   {getRoleDisplayLabel({
                     role: user?.role || 'manager',
                     orgRole: user?.orgRole || 'senior_manager',
@@ -1134,10 +1134,10 @@ export function OrgGovernanceTab() {
                     <div>
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                          <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                          <Crown size={16} className="text-primary shrink-0" />
                           <span>{t('team.orgGovernance.smInviteTitle')}</span>
                         </span>
-                        <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
+                        <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
                           {t('team.orgGovernance.smNewSegmentBadge')}
                         </span>
                       </div>
@@ -1158,7 +1158,7 @@ export function OrgGovernanceTab() {
                             value={smSegmentInput}
                             onChange={(e) => setSmSegmentInput(e.target.value)}
                             maxLength={40}
-                            className="w-full rounded-lg border border-violet-400/70 dark:border-violet-500/50 bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50 uppercase"
+                            className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary uppercase"
                           />
                           {existingOrgSegments.length > 0 && (
                             <datalist id="existing-org-segments">
@@ -1178,12 +1178,12 @@ export function OrgGovernanceTab() {
                             value={smZoneInput}
                             onChange={(e) => setSmZoneInput(e.target.value)}
                             maxLength={40}
-                            className="w-full rounded-lg border border-violet-400/70 dark:border-violet-500/50 bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                            className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                           />
                         </div>
                       </div>
                       {(smSegmentInput.trim() || smZoneInput.trim()) && (
-                        <p className="mt-1.5 text-[11px] text-violet-700 dark:text-violet-300 font-medium">
+                        <p className="mt-1.5 text-[11px] text-primary font-medium">
                           {lang === 'en' ? 'Coordinator label:' : 'Libellé Coordinateur :'}{' '}
                           <span className="font-bold">
                             {smSegmentInput.trim().toUpperCase() || 'N/D'} ({smZoneInput.trim() || 'N/D'})
@@ -1195,18 +1195,18 @@ export function OrgGovernanceTab() {
                       type="button"
                       onClick={() => void generateAndCopySmInvite()}
                       disabled={generatingInvite === 'sm' || !smSegmentInput.trim() || !smZoneInput.trim()}
-                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
+                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-[12.5px] font-bold text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed shadow-xs"
                     >
-                      {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
+                      {copiedSmInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
                       {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
                     </button>
 
                     {/* Menu déroulant de Gestion des Coordinateurs existants (distinct de l'invitation et du segment propre) */}
                     {(orgData?.coordinators || []).length > 0 && (
-                      <div className="mt-4 pt-3.5 border-t border-violet-400/30">
+                      <div className="mt-4 pt-3.5 border-t border-border">
                         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                           <span className="text-[11.5px] font-bold text-foreground flex items-center gap-1.5">
-                            <Crown size={13} className="text-violet-600 dark:text-violet-400" />
+                            <Crown size={13} className="text-primary" />
                             <span>
                               {lang === 'en'
                                 ? `Active Coordinators (${orgData?.coordinators?.length})`
@@ -1218,15 +1218,15 @@ export function OrgGovernanceTab() {
                             <button
                               type="button"
                               onClick={() => setCoordinatorDropdownOpen((prev) => !prev)}
-                              className="inline-flex items-center gap-1.5 rounded-md border border-violet-400/50 bg-violet-50 dark:bg-violet-950/30 px-2.5 py-1 text-[11px] font-bold text-violet-800 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 cursor-pointer shadow-xs transition-colors"
+                              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-bold text-foreground hover:bg-secondary cursor-pointer shadow-xs transition-colors"
                             >
                               <span>{lang === 'en' ? 'Manage Coordinator' : 'Gérer un profil'}</span>
                               <ChevronDown size={12} className="opacity-70" />
                             </button>
 
-                            {/* Dropdown 100% opaque (Règle 8) */}
+                            {/* Dropdown 100% opaque (Règle 8) — ancrage responsive mobile/desktop */}
                             {coordinatorDropdownOpen && (
-                              <div className="dropdown-menu absolute right-0 z-30 mt-1.5 w-80 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
+                              <div className="dropdown-menu absolute left-0 sm:left-auto sm:right-0 z-30 mt-1.5 w-[min(20rem,calc(100vw-3rem))] sm:w-80 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
                                 <div className="px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground border-b border-border mb-1">
                                   {lang === 'en' ? 'Select a Coordinator' : 'Sélectionner un Coordinateur'}
                                 </div>
@@ -1252,7 +1252,7 @@ export function OrgGovernanceTab() {
                                         </div>
                                         <div className="text-[10.5px] text-muted-foreground truncate">{coord.email}</div>
                                       </div>
-                                      <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/15 text-violet-300 dark:text-violet-200 font-bold">
+                                      <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-border bg-secondary text-foreground font-semibold">
                                         {coord.displaySegment || coord.segment || 'N/D'}
                                       </span>
                                     </button>
@@ -1265,13 +1265,13 @@ export function OrgGovernanceTab() {
 
                         {/* Carte Popover / Fiche de gestion du Coordinateur sélectionné (100% OPAQUE) */}
                         {selectedCoordinator && (
-                          <div className="mt-3 rounded-xl border-2 border-violet-500/40 bg-card p-4 shadow-elevation-2 flex flex-col gap-3">
+                          <div className="mt-3 rounded-xl border border-primary/30 bg-card p-4 shadow-elevation-2 flex flex-col gap-3">
                             <div className="flex items-center justify-between border-b border-border pb-2.5">
                               <div className="flex items-center gap-1.5">
-                                <Crown size={14} className="text-violet-600 dark:text-violet-400" />
+                                <Crown size={14} className="text-primary" />
                                 <span className="text-[13px] font-bold text-foreground">
                                   {lang === 'en' ? 'Edit Profile' : 'Profil'} :{' '}
-                                  <span className="text-violet-600 dark:text-violet-400">{selectedCoordinator.name}</span>
+                                  <span className="text-primary">{selectedCoordinator.name}</span>
                                 </span>
                               </div>
                               <button
@@ -1315,7 +1315,7 @@ export function OrgGovernanceTab() {
                                     value={coordNewSegment}
                                     onChange={(e) => setCoordNewSegment(e.target.value)}
                                     placeholder="Ex: PME, SOHO, BTP…"
-                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-violet-500 focus:outline-none uppercase"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-primary focus:outline-none uppercase"
                                   />
                                 </div>
                                 <div>
@@ -1327,7 +1327,7 @@ export function OrgGovernanceTab() {
                                     value={coordNewZone}
                                     onChange={(e) => setCoordNewZone(e.target.value)}
                                     placeholder="Ex: Littoral, Ouest, Centre…"
-                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-violet-500 focus:outline-none"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-primary focus:outline-none"
                                   />
                                 </div>
                               </div>
@@ -1339,7 +1339,7 @@ export function OrgGovernanceTab() {
                                   id="coord-propagate-cb"
                                   checked={coordPropagate}
                                   onChange={(e) => setCoordPropagate(e.target.checked)}
-                                  className="h-3.5 w-3.5 rounded border-border text-violet-600 focus:ring-violet-500 cursor-pointer"
+                                  className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
                                 />
                                 <label
                                   htmlFor="coord-propagate-cb"
@@ -1601,14 +1601,14 @@ export function OrgGovernanceTab() {
 
                 {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement, réservé au SM1) */}
                 {isPrimarySeniorManager && (user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
-                  <div className="flex flex-col justify-between rounded-xl border border-blue-500/30 bg-blue-50/20 dark:bg-blue-500/10 p-4 md:col-span-2">
+                  <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4 md:col-span-2">
                     <div>
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                          <Briefcase size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                          <Briefcase size={16} className="text-primary shrink-0" />
                           <span>Inviter un Responsable Exécutif</span>
                         </span>
-                        <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
+                        <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
                           Option Enterprise · Lecture Seule
                         </span>
                       </div>
@@ -1627,7 +1627,7 @@ export function OrgGovernanceTab() {
                             value={executiveCustomLabel}
                             onChange={(e) => setExecutiveCustomLabel(e.target.value)}
                             maxLength={60}
-                            className="w-full rounded-lg border border-blue-400/70 dark:border-blue-500/50 bg-card px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                           />
                         </div>
                         {/* Champ : Segments d'affectation (Dropdown compact avec cases à cocher) */}
@@ -1638,7 +1638,7 @@ export function OrgGovernanceTab() {
                           <button
                             type="button"
                             onClick={() => setExecutiveSegmentsDropdownOpen((prev) => !prev)}
-                            className="w-full flex items-center justify-between gap-2 rounded-lg border border-blue-400/70 dark:border-blue-500/50 bg-card px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer h-[38px] text-left"
+                            className="w-full flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary cursor-pointer h-[38px] text-left"
                           >
                             <span className="truncate font-medium">{executiveSegmentsButtonLabel}</span>
                             <ChevronDown
@@ -1743,7 +1743,7 @@ export function OrgGovernanceTab() {
                       type="button"
                       onClick={() => void generateAndCopyExecutiveInvite()}
                       disabled={generatingInvite === 'executive' || (!isExecutiveAllSegments && selectedExecutiveSegments.length === 0)}
-                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-500/50 bg-blue-600 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer disabled:opacity-50 shadow-xs"
+                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-3.5 py-2 text-[12.5px] font-bold text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer disabled:bg-secondary disabled:text-muted-foreground disabled:border-border disabled:cursor-not-allowed shadow-xs"
                     >
                       {copiedExecutiveInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
                       {copiedExecutiveInvite

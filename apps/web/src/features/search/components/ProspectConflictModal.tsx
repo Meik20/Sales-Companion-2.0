@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
@@ -91,9 +91,9 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
       return {
         label: t('search.conflictStatusNegociation') || 'En négociation',
         icon: TrendingUp,
-        bg: 'bg-violet-500/15',
-        text: 'text-violet-700 dark:text-violet-400',
-        border: 'border-violet-500/30'
+        bg: 'bg-primary/15',
+        text: 'text-primary',
+        border: 'border-primary/30'
       }
     }
     if (rawStatus === 'prospection' || rawStatus === 'prospect' || rawStatus === 'lead') {

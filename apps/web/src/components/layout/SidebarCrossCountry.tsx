@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -82,7 +82,7 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
             size={16}
             strokeWidth={1.8}
             className={`shrink-0 transition-colors ${
-              isOpen || hasCrossCountry ? 'text-violet-500 dark:text-violet-400' : 'text-muted-foreground'
+              isOpen || hasCrossCountry ? 'text-primary' : 'text-muted-foreground'
             }`}
           />
           <span className="truncate">
@@ -97,7 +97,7 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
           {/* Badge Enterprise si l'utilisateur est restreint */}
           {!hasCrossCountry && (
             <span
-              className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25"
+              className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
               title={
                 lang === 'en'
                   ? 'Available starting from Enterprise plan'
@@ -124,7 +124,7 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
           <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
             <span>{t('sidebar.selectCountry') || 'Changer de pays'}</span>
             {!hasCrossCountry && (
-              <span className="text-[9.5px] text-violet-600 dark:text-violet-400 font-medium flex items-center gap-1">
+              <span className="text-[9.5px] text-primary font-medium flex items-center gap-1">
                 <Sparkles size={10} /> {t('sidebar.lockedForPlan') || 'Enterprise'}
               </span>
             )}
@@ -166,7 +166,7 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
                             : 'Réservé au plan Enterprise – cliquez pour débloquer'
                         }
                       >
-                        <Lock size={11} className="text-violet-500/80 shrink-0" />
+                        <Lock size={11} className="text-muted-foreground shrink-0" />
                       </span>
                     ) : null}
                   </div>

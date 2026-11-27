@@ -649,10 +649,10 @@ export default function PipelinePage() {
 
           {/* ── Commutateur étanche de Segment pour le Coordinateur (Titulaire vs Intérim) ── */}
           {isSeniorManager && coordinatorSegmentsList.length > 1 && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
               <div className="flex items-center gap-2 shrink-0">
-                <Layers size={14} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                <span className="text-[11px] font-bold text-violet-700 dark:text-violet-300 uppercase tracking-wider">
+                <Layers size={14} className="text-primary shrink-0" />
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
                   {lang === 'en' ? 'Active Segment :' : 'Segment actif :'}
                 </span>
               </div>
@@ -668,7 +668,7 @@ export default function PipelinePage() {
                         setFilterManagerUid(undefined)
                       }}
                       className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${isSelected
-                        ? 'bg-violet-600 text-white shadow-xs'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'bg-card text-foreground hover:bg-secondary border border-border'
                         }`}
                     >
@@ -676,8 +676,8 @@ export default function PipelinePage() {
                       <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${isSelected
                         ? 'bg-white/20 text-white'
                         : item.isInterim
-                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25'
-                          : 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25'
+                          ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                          : 'bg-primary/10 text-primary border border-primary/20'
                         }`}>
                         {item.isInterim ? (lang === 'en' ? 'Interim' : 'Intérim') : (lang === 'en' ? 'Titular' : 'Titulaire')}
                       </span>

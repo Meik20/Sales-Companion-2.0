@@ -1,4 +1,4 @@
-﻿/* ════════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════
    THEME : Firebase Console Design System – Navy + Amber
    World-class elevation : layered shadows · elevation tokens · glow
    Activé par : <html data-design="firebase">
@@ -114,28 +114,28 @@
   --bd: #e8eaed !important;
   --bd2: #dadce0 !important;
 
-  /* ── Couleur primaire → Amber Firebase ──────────────────────────── */
-  --color-primary: #ffa611 !important;
-  --color-primary-dark: #e07000 !important;
-  --color-primary-light: rgba(255, 166, 17, 0.12) !important;
+  /* ── Couleur primaire → Bleu Royal Charte (#2F5BEA) ──────────────── */
+  --color-primary: #2F5BEA !important;
+  --color-primary-dark: #1E40AF !important;
+  --color-primary-light: #EBF0FF !important;
 
-  /* ── Accent → Navy ──────────────────────────────────────────────── */
-  --color-accent: #1967d2 !important;
-  --color-secondary: #1967d2 !important;
+  /* ── Accent → Bleu Royal ────────────────────────────────────────── */
+  --color-accent: #2F5BEA !important;
+  --color-secondary: #2F5BEA !important;
 
-  /* ── États sémantiques ──────────────────────────────────────────── */
-  --color-success: #0284c7 !important;
-  --color-success-bg: #e0f2fe !important;
-  --color-warning: #8a6500 !important;
-  --color-warning-bg: #fef7e0 !important;
-  --color-danger: #d93025 !important;
-  --color-danger-bg: #fce8e6 !important;
+  /* ── États sémantiques (Charte Graphique) ───────────────────────── */
+  --color-success: #047857 !important;
+  --color-success-bg: #ecfdf5 !important;
+  --color-warning: #b45309 !important;
+  --color-warning-bg: #fffbeb !important;
+  --color-danger: #b91c1c !important;
+  --color-danger-bg: #fef2f2 !important;
 
   /* ── Interactions ───────────────────────────────────────────────── */
-  --cr-link-color: #1967d2 !important;
-  --cr-focus-outline-color: #ffa611 !important;
-  --cr-hover-background-color: rgba(0, 0, 0, 0.06) !important;
-  --cr-active-background-color: rgba(0, 0, 0, 0.1) !important;
+  --cr-link-color: #2F5BEA !important;
+  --cr-focus-outline-color: #2F5BEA !important;
+  --cr-hover-background-color: rgba(47, 91, 234, 0.06) !important;
+  --cr-active-background-color: rgba(47, 91, 234, 0.12) !important;
 
   /* ── Shadow System World-Class (Ambient + Key Light layered) ────── */
   /* Elevation 0 – flat, no shadow (focused states) */
@@ -171,20 +171,20 @@
     0 2px 8px rgba(60, 64, 67, 0.1),
     0 8px 20px rgba(60, 64, 67, 0.12);
 
-  /* ── Glow primaire (amber) ──────────────────────────────────────── */
-  --glow-primary: 0 0 0 3px rgba(255, 166, 17, 0.25);
-  --glow-primary-strong: 0 0 20px rgba(255, 166, 17, 0.3), 0 0 40px rgba(255, 166, 17, 0.15);
+  /* ── Glow primaire (Bleu Royal) ─────────────────────────────────── */
+  --glow-primary: 0 0 0 3px rgba(47, 91, 234, 0.2);
+  --glow-primary-strong: 0 0 20px rgba(47, 91, 234, 0.25), 0 0 40px rgba(47, 91, 234, 0.1);
 
-  /* ── Glow accent (navy) ─────────────────────────────────────────── */
-  --glow-accent: 0 0 0 3px rgba(25, 103, 210, 0.2);
-  --glow-accent-strong: 0 0 20px rgba(25, 103, 210, 0.25), 0 0 40px rgba(25, 103, 210, 0.1);
+  /* ── Glow accent (Bleu Royal) ───────────────────────────────────── */
+  --glow-accent: 0 0 0 3px rgba(47, 91, 234, 0.2);
+  --glow-accent-strong: 0 0 20px rgba(47, 91, 234, 0.25), 0 0 40px rgba(47, 91, 234, 0.1);
 
   /* ── Focus ring ─────────────────────────────────────────────────── */
-  --ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px rgba(255, 166, 17, 0.6);
+  --ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px rgba(47, 91, 234, 0.45);
 
   /* ── Surface inset (inputs) ─────────────────────────────────────── */
-  --shadow-inset: inset 0 1px 3px rgba(60, 64, 67, 0.1);
-  --shadow-inset-focus: inset 0 1px 3px rgba(60, 64, 67, 0.1), 0 0 0 2px rgba(255, 166, 17, 0.4);
+  --shadow-inset: inset 0 1px 3px rgba(60, 64, 67, 0.08);
+  --shadow-inset-focus: inset 0 1px 3px rgba(60, 64, 67, 0.08), 0 0 0 2px rgba(47, 91, 234, 0.35);
 
   /* ── Typographie ────────────────────────────────────────────────── */
   --font-family:
@@ -196,12 +196,12 @@
   --r2: 8px !important;
   --r3: 12px !important;
 
-  /* ── Blue scale override ────────────────────────────────────────── */
-  --color-blue-50: rgba(255, 166, 17, 0.1) !important;
-  --color-blue-100: rgba(255, 166, 17, 0.15) !important;
-  --color-blue-200: rgba(255, 166, 17, 0.25) !important;
-  --color-blue-600: #e07000 !important;
-  --color-blue-900: #bf5c00 !important;
+  /* ── Blue scale (Bleu Royal Charte) ─────────────────────────────── */
+  --color-blue-50: #ebf0ff !important;
+  --color-blue-100: rgba(47, 91, 234, 0.12) !important;
+  --color-blue-200: rgba(47, 91, 234, 0.2) !important;
+  --color-blue-600: #2F5BEA !important;
+  --color-blue-900: #1e3a8a !important;
 
   /* ── Teal override ──────────────────────────────────────────────── */
   --color-teal-50: rgba(25, 103, 210, 0.1) !important;
@@ -226,26 +226,26 @@
   --bd: rgba(255, 255, 255, 0.1) !important;
   --bd2: rgba(255, 255, 255, 0.18) !important;
 
-  /* ── Couleur primaire → Amber vif ───────────────────────────────── */
-  --color-primary: #ffa611 !important;
-  --color-primary-dark: #ffcb2b !important;
-  --color-primary-light: rgba(255, 166, 17, 0.15) !important;
+  /* ── Couleur primaire → Bleu Royal Charte (#2F5BEA) ──────────────── */
+  --color-primary: #2F5BEA !important;
+  --color-primary-dark: #4f75f5 !important;
+  --color-primary-light: rgba(47, 91, 234, 0.2) !important;
 
-  /* ── Accent → Navy clair ────────────────────────────────────────── */
-  --color-accent: #aabfff !important;
-  --color-secondary: #aabfff !important;
+  /* ── Accent → Bleu clair ────────────────────────────────────────── */
+  --color-accent: #9cb3ff !important;
+  --color-secondary: #9cb3ff !important;
 
-  /* ── États sémantiques ──────────────────────────────────────────── */
-  --color-success: #38bdf8 !important;
-  --color-success-bg: rgba(2, 132, 199, 0.2) !important;
-  --color-warning: #fbbc04 !important;
-  --color-warning-bg: rgba(251, 188, 4, 0.15) !important;
-  --color-danger: #ea4335 !important;
-  --color-danger-bg: rgba(217, 48, 37, 0.2) !important;
+  /* ── États sémantiques (Charte Graphique) ───────────────────────── */
+  --color-success: #34d399 !important;
+  --color-success-bg: rgba(52, 211, 153, 0.14) !important;
+  --color-warning: #fbbf24 !important;
+  --color-warning-bg: rgba(251, 191, 36, 0.14) !important;
+  --color-danger: #f87171 !important;
+  --color-danger-bg: rgba(248, 113, 113, 0.16) !important;
 
   /* ── Interactions ───────────────────────────────────────────────── */
-  --cr-link-color: #aabfff !important;
-  --cr-focus-outline-color: #ffa611 !important;
+  --cr-link-color: #9cb3ff !important;
+  --cr-focus-outline-color: #2F5BEA !important;
   --cr-hover-background-color: rgba(255, 255, 255, 0.06) !important;
   --cr-active-background-color: rgba(255, 255, 255, 0.1) !important;
 
@@ -283,20 +283,20 @@
     0 2px 8px rgba(0, 0, 0, 0.4),
     0 8px 20px rgba(0, 0, 0, 0.35);
 
-  /* ── Glow primaire (amber chaud sur fond sombre) ────────────────── */
-  --glow-primary: 0 0 0 3px rgba(255, 166, 17, 0.3);
-  --glow-primary-strong: 0 0 20px rgba(255, 166, 17, 0.4), 0 0 60px rgba(255, 166, 17, 0.15);
+  /* ── Glow primaire (Bleu Royal) ─────────────────────────────────── */
+  --glow-primary: 0 0 0 3px rgba(47, 91, 234, 0.3);
+  --glow-primary-strong: 0 0 20px rgba(47, 91, 234, 0.35), 0 0 60px rgba(47, 91, 234, 0.15);
 
-  /* ── Glow accent (navy clair) ───────────────────────────────────── */
-  --glow-accent: 0 0 0 3px rgba(170, 191, 255, 0.25);
-  --glow-accent-strong: 0 0 20px rgba(170, 191, 255, 0.3), 0 0 40px rgba(170, 191, 255, 0.1);
+  /* ── Glow accent (Bleu clair) ───────────────────────────────────── */
+  --glow-accent: 0 0 0 3px rgba(156, 179, 255, 0.25);
+  --glow-accent-strong: 0 0 20px rgba(156, 179, 255, 0.3), 0 0 40px rgba(156, 179, 255, 0.1);
 
   /* ── Focus ring dark ────────────────────────────────────────────── */
-  --ring-focus: 0 0 0 2px #2d2e31, 0 0 0 4px rgba(255, 166, 17, 0.7);
+  --ring-focus: 0 0 0 2px #2d2e31, 0 0 0 4px rgba(47, 91, 234, 0.6);
 
   /* ── Surface inset (inputs dark) ───────────────────────────────── */
   --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-inset-focus: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 166, 17, 0.5);
+  --shadow-inset-focus: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(47, 91, 234, 0.45);
 
   /* ── Typographie ────────────────────────────────────────────────── */
   --font-family:
@@ -308,12 +308,12 @@
   --r2: 8px !important;
   --r3: 12px !important;
 
-  /* ── Blue scale override ────────────────────────────────────────── */
-  --color-blue-50: rgba(255, 166, 17, 0.15) !important;
-  --color-blue-100: rgba(255, 166, 17, 0.2) !important;
-  --color-blue-200: rgba(255, 166, 17, 0.3) !important;
-  --color-blue-600: #ffcb2b !important;
-  --color-blue-900: #ffe082 !important;
+  /* ── Blue scale (Bleu Royal Charte) ─────────────────────────────── */
+  --color-blue-50: rgba(47, 91, 234, 0.18) !important;
+  --color-blue-100: rgba(47, 91, 234, 0.24) !important;
+  --color-blue-200: rgba(47, 91, 234, 0.32) !important;
+  --color-blue-600: #2F5BEA !important;
+  --color-blue-900: #9cb3ff !important;
 
   /* ── Teal override ──────────────────────────────────────────────── */
   --color-teal-50: rgba(170, 191, 255, 0.1) !important;

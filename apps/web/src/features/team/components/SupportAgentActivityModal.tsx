@@ -209,9 +209,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <FileText size={11} className="text-purple-600 dark:text-purple-400" /> CRM
+                      <FileText size={11} className="text-primary" /> CRM
                     </span>
-                    <span className="text-xl font-black text-purple-600 dark:text-purple-400 mt-1">
+                    <span className="text-xl font-black text-primary mt-1">
                       {data.kpis.crmActivitiesCount}
                     </span>
                     <span className="text-[10px] text-muted-foreground">notes & actions CRM</span>

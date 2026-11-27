@@ -1138,7 +1138,7 @@ export function OverdueFollowUpsDrawer({
                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                                <Building2 size={15} className="text-indigo-600 dark:text-indigo-400" />
+                                <Building2 size={15} className="text-primary" />
                                 <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
                                   {lead.companyName === 'Prospect sans nom' ? t('pipeline.unnamedLead') : lead.companyName}
                                 </span>

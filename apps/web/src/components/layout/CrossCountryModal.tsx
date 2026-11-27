@@ -88,7 +88,7 @@ export function CrossCountryModal({
 
         {/* En-tête avec badge Enterprise */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-600 dark:text-purple-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
             <Lock size={12} className="shrink-0" />
             {lang === 'en' ? 'Enterprise Multi-Country Feature' : 'Option Multi-Pays Enterprise'}
           </span>
@@ -127,7 +127,7 @@ export function CrossCountryModal({
           {lang === 'en' ? (
             <>
               <div className="flex items-start gap-2.5 text-foreground">
-                <Globe size={16} className="text-purple-500 shrink-0 mt-0.5" />
+                <Globe size={16} className="text-primary shrink-0 mt-0.5" />
                 <span>
                   <strong>7 Pan-African Commercial Markets:</strong> Cameroon, Senegal, Ivory Coast, Benin,
                   Togo, Chad, Central African Republic.
@@ -151,7 +151,7 @@ export function CrossCountryModal({
           ) : (
             <>
               <div className="flex items-start gap-2.5 text-foreground">
-                <Globe size={16} className="text-purple-500 shrink-0 mt-0.5" />
+                <Globe size={16} className="text-primary shrink-0 mt-0.5" />
                 <span>
                   <strong>7 Marchés Commerciaux Panafricains :</strong> Cameroun, Sénégal, Côte d&apos;Ivoire, Bénin,
                   Togo, Tchad, Centrafrique.
@@ -192,7 +192,7 @@ export function CrossCountryModal({
                   handleClose()
                   router.push(`${routes.upgrade}?plan=enterprise`)
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-purple-600/20 hover:bg-purple-700 transition-colors"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors cursor-pointer"
               >
                 <span>{lang === 'en' ? 'Upgrade to Enterprise plan' : 'Passer au forfait Enterprise'}</span>
                 <ArrowRight size={14} />

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -404,40 +404,40 @@ export function RegisterForm() {
 
       {/* Bannière Invitation Organisation (Multi-SM / Team Manager) */}
       {orgInviteInfo && (
-        <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+        <div className="mb-5 rounded-xl border border-primary/25 bg-primary/5 p-3.5 text-xs text-foreground flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
-            <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
+            <div className="font-bold text-foreground text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
-                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur – Segment : {orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment) || 'Nouveau Segment'}</>
+                <><Crown size={13} className="text-primary shrink-0" /> Invitation Coordinateur – Segment : {orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment) || 'Nouveau Segment'}</>
               ) : orgInviteInfo.type === 'executive' ? (
-                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation – {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ' – Supervision Globale (Tous les segments)'}</>
+                <><Building2 size={13} className="text-amber-600 dark:text-amber-400 shrink-0" /> Invitation – {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ' – Supervision Globale (Tous les segments)'}</>
               ) : (
-                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ''}</>
+                <><Users2 size={13} className="text-primary shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` – Segment : ${orgInviteInfo.segment}` : ''}</>
               )}
             </div>
-            <div className="text-[11.5px] text-indigo-800 dark:text-indigo-200/90 mt-1 leading-relaxed">
-              Organisation : <strong>{orgInviteInfo.companyName}</strong> (Code : {orgInviteInfo.orgCode})
+            <div className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
+              Organisation : <strong className="text-foreground">{orgInviteInfo.companyName}</strong> (Code : {orgInviteInfo.orgCode})
               {orgInviteInfo.seniorManagerName && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Crown size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
+                  <Crown size={10} className="text-primary shrink-0" />
+                  Invité par : <strong className="text-foreground">{orgInviteInfo.seniorManagerName}</strong>
                 </div>
               )}
               {orgInviteInfo.segments && orgInviteInfo.segments.length > 1 ? (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Segments sous observation : <strong>{orgInviteInfo.segments.join(', ')}</strong>
+                  <Tag size={10} className="text-primary shrink-0" />
+                  Segments sous observation : <strong className="text-foreground">{orgInviteInfo.segments.join(', ')}</strong>
                 </div>
               ) : orgInviteInfo.segment ? (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Segment rattaché : <strong>{orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment)}</strong>
+                  <Tag size={10} className="text-primary shrink-0" />
+                  Segment rattaché : <strong className="text-foreground">{orgInviteInfo.displaySegment || (orgInviteInfo.zone ? `${orgInviteInfo.segment} (${orgInviteInfo.zone})` : orgInviteInfo.segment)}</strong>
                 </div>
               ) : orgInviteInfo.type === 'executive' ? (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Périmètre de supervision : <strong>Tous les segments (Supervision Globale)</strong>
+                  <Tag size={10} className="text-primary shrink-0" />
+                  Périmètre de supervision : <strong className="text-foreground">Tous les segments (Supervision Globale)</strong>
                 </div>
               ) : null}
               {orgInviteInfo.type === 'executive' && (
@@ -629,7 +629,7 @@ export function RegisterForm() {
                 <div className="flex items-center gap-1.5 text-[14px] font-bold text-foreground mt-0.5">
                   {orgInviteInfo.type === 'senior_manager' ? (
                     <>
-                      <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                      <Crown size={15} className="text-primary shrink-0" />
                       <span>Coordinateur</span>
                     </>
                   ) : orgInviteInfo.type === 'executive' ? (
