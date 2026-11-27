@@ -104,6 +104,13 @@ interface OrgData {
   executives?: OrgExecutiveItem[]
   coordinators?: OrgCoordinatorItem[]
   availableSegments?: string[]
+  unassignedZones?: Array<{
+    segment: string
+    zone: string | null
+    displaySegment: string
+    interimByUid?: string | null
+    interimByName?: string | null
+  }>
 }
 
 export function OrgGovernanceTab() {
@@ -152,9 +159,12 @@ export function OrgGovernanceTab() {
   const [coordNewZone, setCoordNewZone] = useState('')
   const [coordPropagate, setCoordPropagate] = useState(false)
   const [savingCoordinator, setSavingCoordinator] = useState(false)
-  const [interimSegmentInput, setInterimSegmentInput] = useState('')
-  const [interimZoneInput, setInterimZoneInput] = useState('')
+  const [selectedInterimZoneKey, setSelectedInterimZoneKey] = useState('')
   const [savingInterim, setSavingInterim] = useState(false)
+  const [unassignZoneOpen, setUnassignZoneOpen] = useState(false)
+  const [unassignZoneMode, setUnassignZoneMode] = useState<'vacant' | 'interim'>('vacant')
+  const [unassignInterimUid, setUnassignInterimUid] = useState('')
+  const [unassigningZone, setUnassigningZone] = useState(false)
   const [interimRemoveTarget, setInterimRemoveTarget] = useState<{
     segment: string
     zone: string | null
@@ -670,7 +680,11 @@ export function OrgGovernanceTab() {
   }
 
   const handleAssignInterim = async () => {
-    if (!selectedCoordinator || !interimSegmentInput.trim()) return
+    if (!selectedCoordinator || !selectedInterimZoneKey) return
+    const chosenZone = (orgData?.unassignedZones || []).find(
+      (z) => z.displaySegment === selectedInterimZoneKey
+    )
+    if (!chosenZone) return
     setSavingInterim(true)
     try {
       const token = await user?.getIdToken()
@@ -680,38 +694,24 @@ export function OrgGovernanceTab() {
         body: JSON.stringify({
           coordinatorUid: selectedCoordinator.uid,
           action: 'assign',
-          segment: interimSegmentInput.trim(),
-          zone: interimZoneInput.trim()
+          segment: chosenZone.segment,
+          zone: chosenZone.zone || ''
         })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || data.error || "Erreur lors de l'assignation de l'intérim")
 
-      // Mettre à jour orgData localement
-      setOrgData((prev: any) => {
-        if (!prev) return prev
-        const updatedCoordinators = (prev.coordinators || []).map((c: any) => {
-          if (c.uid === selectedCoordinator.uid) {
-            return {
-              ...c,
-              interimSegments: data.interimSegments
-            }
-          }
-          return c
-        })
-        return { ...prev, coordinators: updatedCoordinators }
-      })
       setSelectedCoordinator((prev) =>
         prev ? { ...prev, interimSegments: data.interimSegments } : null
       )
+      setSelectedInterimZoneKey('')
+      await fetchOrg(true)
 
       pushToast({
         type: 'success',
         title: lang === 'en' ? 'Interim assigned' : 'Intérim affecté',
         description: data.message
       })
-      setInterimSegmentInput('')
-      setInterimZoneInput('')
     } catch (err: any) {
       pushToast({
         type: 'error',
@@ -720,6 +720,57 @@ export function OrgGovernanceTab() {
       })
     } finally {
       setSavingInterim(false)
+    }
+  }
+
+  const openUnassignZonePanel = () => {
+    if (!selectedCoordinator) return
+    const otherCoords = (orgData?.coordinators || []).filter((c) => c.uid !== selectedCoordinator.uid)
+    setUnassignZoneMode('vacant')
+    setUnassignInterimUid(otherCoords[0]?.uid || '')
+    setUnassignZoneOpen(true)
+  }
+
+  const handleConfirmUnassignZone = async () => {
+    if (!selectedCoordinator) return
+    if (unassignZoneMode === 'interim' && !unassignInterimUid) return
+    setUnassigningZone(true)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/coordinator/unassign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          coordinatorUid: selectedCoordinator.uid,
+          interimCoordinatorUid: unassignZoneMode === 'interim' ? unassignInterimUid : undefined
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || data.error || 'Erreur lors du retrait de la zone')
+
+      setSelectedCoordinator((prev) =>
+        prev
+          ? { ...prev, segment: null, zone: null, displaySegment: null }
+          : null
+      )
+      setCoordNewSegment('')
+      setCoordNewZone('')
+      setUnassignZoneOpen(false)
+      await fetchOrg(true)
+
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Coordinator removed from zone' : 'Coordinateur retiré de la zone',
+        description: data.message
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'Removal failed' : 'Échec du retrait',
+        description: err.message
+      })
+    } finally {
+      setUnassigningZone(false)
     }
   }
 
@@ -1240,8 +1291,9 @@ export function OrgGovernanceTab() {
                                         setCoordNewSegment(coord.segment?.split('(')[0]?.trim() || '')
                                         setCoordNewZone(coord.zone || '')
                                         setCoordPropagate(false)
-                                        setInterimSegmentInput('')
-                                        setInterimZoneInput('')
+                                        setSelectedInterimZoneKey('')
+                                        setUnassignZoneOpen(false)
+                                        setInterimRemoveTarget(null)
                                         setCoordinatorDropdownOpen(false)
                                       }}
                                       className="w-full flex items-center justify-between gap-2.5 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
@@ -1290,15 +1342,118 @@ export function OrgGovernanceTab() {
                                 </span>
                                 <span className="font-bold text-foreground truncate block">{selectedCoordinator.email}</span>
                               </div>
-                              <div className="rounded-lg border border-border bg-secondary/20 p-2">
-                                <span className="text-muted-foreground block text-[10.5px] font-semibold">
-                                  {lang === 'en' ? 'Current Segment & Zone' : 'Segment & Zone actuels'}
-                                </span>
-                                <span className="font-bold text-foreground truncate block">
-                                  {selectedCoordinator.displaySegment || selectedCoordinator.segment || 'N/D'}
-                                </span>
+                              <div className="rounded-lg border border-border bg-secondary/20 p-2 flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <span className="text-muted-foreground block text-[10.5px] font-semibold">
+                                    {lang === 'en' ? 'Current Zone' : 'Zone actuelle'}
+                                  </span>
+                                  <span className="font-bold text-foreground truncate block">
+                                    {selectedCoordinator.displaySegment || selectedCoordinator.segment || (lang === 'en' ? 'Unassigned' : 'Aucune zone affectée')}
+                                  </span>
+                                </div>
+                                {(selectedCoordinator.displaySegment || selectedCoordinator.segment) && (
+                                  <button
+                                    type="button"
+                                    onClick={openUnassignZonePanel}
+                                    className="shrink-0 text-[10.5px] font-semibold text-destructive hover:text-destructive/80 px-2 py-1 rounded-md border border-destructive/30 hover:bg-destructive/10 transition-colors cursor-pointer"
+                                  >
+                                    {lang === 'en' ? 'Remove from zone' : 'Retirer de la zone'}
+                                  </button>
+                                )}
                               </div>
                             </div>
+
+                            {/* Panneau de confirmation sécurisé pour retirer le Coordinateur de sa zone */}
+                            {unassignZoneOpen && (selectedCoordinator.displaySegment || selectedCoordinator.segment) && (() => {
+                              const otherCoords = (orgData?.coordinators || []).filter(
+                                (c) => c.uid !== selectedCoordinator.uid
+                              )
+                              return (
+                                <div className="rounded-lg border border-destructive/40 bg-card p-3 space-y-2.5 shadow-sm">
+                                  <div className="text-[11.5px] font-bold text-foreground">
+                                    {lang === 'en'
+                                      ? `Remove ${selectedCoordinator.name} from zone "${selectedCoordinator.displaySegment || selectedCoordinator.segment}"`
+                                      : `Retirer ${selectedCoordinator.name} de la zone « ${selectedCoordinator.displaySegment || selectedCoordinator.segment} »`}
+                                  </div>
+                                  <p className="text-[10.5px] text-muted-foreground m-0">
+                                    {lang === 'en'
+                                      ? 'All supervisors, salespeople, and pipeline records remain intact. Choose what happens to this zone:'
+                                      : 'Les superviseurs, commerciaux et fiches du pipeline restent intacts. Choisissez le sort de cette zone :'}
+                                  </p>
+                                  <div className="space-y-1.5">
+                                    <label className="flex items-start gap-2 rounded-md border border-border p-2 cursor-pointer hover:bg-secondary/30">
+                                      <input
+                                        type="radio"
+                                        name="unassign-zone-mode"
+                                        checked={unassignZoneMode === 'vacant'}
+                                        onChange={() => setUnassignZoneMode('vacant')}
+                                        className="mt-0.5 cursor-pointer"
+                                      />
+                                      <div className="text-[11px]">
+                                        <span className="font-bold text-foreground block">
+                                          {lang === 'en' ? 'Leave zone vacant (no designated Coordinator)' : 'Laisser la zone vacante (sans Coordinateur désigné)'}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {lang === 'en'
+                                            ? 'The zone will appear in the unassigned zones dropdown for future assignment.'
+                                            : 'La zone deviendra sélectionnable dans la liste des zones sans Coordinateur.'}
+                                        </span>
+                                      </div>
+                                    </label>
+                                    {otherCoords.length > 0 && (
+                                      <label className="flex items-start gap-2 rounded-md border border-border p-2 cursor-pointer hover:bg-secondary/30">
+                                        <input
+                                          type="radio"
+                                          name="unassign-zone-mode"
+                                          checked={unassignZoneMode === 'interim'}
+                                          onChange={() => setUnassignZoneMode('interim')}
+                                          className="mt-0.5 cursor-pointer"
+                                        />
+                                        <div className="flex-1 text-[11px] space-y-1.5">
+                                          <span className="font-bold text-foreground block">
+                                            {lang === 'en' ? 'Assign immediately as interim to another Coordinator' : 'Confier immédiatement en intérim à un autre Coordinateur'}
+                                          </span>
+                                          {unassignZoneMode === 'interim' && (
+                                            <select
+                                              value={unassignInterimUid}
+                                              onChange={(e) => setUnassignInterimUid(e.target.value)}
+                                              className="h-8 w-full rounded-md border border-border bg-card px-2 text-[11.5px] font-medium text-foreground focus:border-primary focus:outline-none"
+                                            >
+                                              {otherCoords.map((c) => (
+                                                <option key={c.uid} value={c.uid}>
+                                                  {c.name} — {c.displaySegment || c.segment || (lang === 'en' ? 'Unassigned' : 'Sans zone')}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          )}
+                                        </div>
+                                      </label>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center justify-end gap-2 pt-1">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      disabled={unassigningZone}
+                                      onClick={() => setUnassignZoneOpen(false)}
+                                    >
+                                      {lang === 'en' ? 'Cancel' : 'Annuler'}
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="danger"
+                                      loading={unassigningZone}
+                                      disabled={unassignZoneMode === 'interim' && !unassignInterimUid}
+                                      onClick={() => void handleConfirmUnassignZone()}
+                                    >
+                                      {lang === 'en' ? 'Confirm Removal' : 'Confirmer le retrait'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )
+                            })()}
 
                             {/* Formulaire de modification */}
                             <div className="rounded-lg border border-border p-3 bg-secondary/10 flex flex-col gap-2.5">
@@ -1383,17 +1538,17 @@ export function OrgGovernanceTab() {
                             {/* Section Intérim du Coordinateur */}
                             <div className="rounded-lg border border-amber-500/30 p-3 bg-amber-500/5 flex flex-col gap-2.5">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11.5px] font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                                  <span>{lang === 'en' ? 'Interim Segments' : 'Segments par Intérim'}</span>
+                                <span className="text-[11.5px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                                  <span>{lang === 'en' ? 'Interim Zones' : 'Zones gérées par Intérim'}</span>
                                 </span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25">
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
                                   {lang === 'en' ? 'Watertight navigation' : 'Navigation étanche'}
                                 </span>
                               </div>
                               <p className="text-[11px] text-muted-foreground m-0">
                                 {lang === 'en'
-                                  ? 'Assign a second segment on an interim basis. The coordinator can switch between pipelines without data mixing.'
-                                  : 'Affecter un second segment par intérim. Le coordinateur pourra commuter entre les pipelines sans aucun mélange.'}
+                                  ? 'Assign an existing unassigned zone on an interim basis. The coordinator can switch between zones without data mixing.'
+                                  : 'Affecter par intérim une zone existante sans Coordinateur désigné. Le coordinateur pourra commuter entre les zones sans aucun mélange.'}
                               </p>
 
                               {/* Liste des intérims actifs */}
@@ -1552,45 +1707,69 @@ export function OrgGovernanceTab() {
                                 </div>
                               )}
 
-                              {/* Formulaire d'affectation d'intérim */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-amber-500/20">
-                                <div>
-                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
-                                    {lang === 'en' ? 'Interim Segment *' : 'Segment d’intérim *'}
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={interimSegmentInput}
-                                    onChange={(e) => setInterimSegmentInput(e.target.value)}
-                                    placeholder="Ex: SOHO, PME, BTP…"
-                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-amber-500 focus:outline-none uppercase"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
-                                    {lang === 'en' ? 'Zone (Optional)' : 'Zone (Optionnelle)'}
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={interimZoneInput}
-                                    onChange={(e) => setInterimZoneInput(e.target.value)}
-                                    placeholder="Ex: Littoral, Nord, Ouest…"
-                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-amber-500 focus:outline-none"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end pt-1">
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="primary"
-                                  loading={savingInterim}
-                                  disabled={!interimSegmentInput.trim()}
-                                  onClick={() => void handleAssignInterim()}
-                                >
-                                  {lang === 'en' ? 'Assign Interim' : 'Affecter l’intérim'}
-                                </Button>
-                              </div>
+                              {/* Formulaire d'affectation d'intérim (Dropdown des zones existantes sans Coordinateur désigné) */}
+                              {(() => {
+                                const currentInterims = new Set(
+                                  ((selectedCoordinator as any).interimSegments || []).map((it: any) =>
+                                    String(it?.displaySegment || (it?.zone ? `${it.segment} (${it.zone})` : it?.segment) || '')
+                                      .trim()
+                                      .toLowerCase()
+                                  )
+                                )
+                                const selectableZones = (orgData?.unassignedZones || []).filter(
+                                  (z) => !currentInterims.has(z.displaySegment.trim().toLowerCase())
+                                )
+                                return (
+                                  <div className="pt-2 border-t border-amber-500/20 space-y-2">
+                                    <div>
+                                      <label className="text-[10.5px] font-semibold text-muted-foreground block mb-1">
+                                        {lang === 'en'
+                                          ? 'Unassigned Zone *'
+                                          : 'Zone sans Coordinateur désigné *'}
+                                      </label>
+                                      {selectableZones.length > 0 ? (
+                                        <select
+                                          value={selectedInterimZoneKey}
+                                          onChange={(e) => setSelectedInterimZoneKey(e.target.value)}
+                                          className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] font-medium text-foreground focus:border-primary focus:outline-none"
+                                        >
+                                          <option value="">
+                                            {lang === 'en'
+                                              ? 'Select an unassigned zone…'
+                                              : 'Choisir une zone vacante…'}
+                                          </option>
+                                          {selectableZones.map((z) => (
+                                            <option key={z.displaySegment} value={z.displaySegment}>
+                                              {z.displaySegment}
+                                              {z.interimByName
+                                                ? ` (${lang === 'en' ? 'Interim' : 'Intérim'} : ${z.interimByName})`
+                                                : ` (${lang === 'en' ? 'Vacant' : 'Vacante'})`}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <div className="rounded-lg border border-border bg-card/70 px-3 py-2 text-[11px] text-muted-foreground">
+                                          {lang === 'en'
+                                            ? 'All existing zones in the organization currently have a designated Coordinator.'
+                                            : 'Toutes les zones existantes de l’organisation ont déjà un Coordinateur désigné.'}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex justify-end">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="primary"
+                                        loading={savingInterim}
+                                        disabled={!selectedInterimZoneKey || selectableZones.length === 0}
+                                        onClick={() => void handleAssignInterim()}
+                                      >
+                                        {lang === 'en' ? 'Assign Interim' : 'Affecter l’intérim'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )
+                              })()}
                             </div>
                           </div>
                         )}

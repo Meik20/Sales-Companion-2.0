@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateOrgCode, normalizeNiu, isValidNiuFormat } from '@/lib/org'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { matchesOrgSegment } from '@/lib/org-scope'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 async function getAdmin() {
@@ -144,10 +145,12 @@ export async function GET(request: NextRequest) {
 
     // Récupérer le propriétaire initial de l'organisation (SM1)
     let primarySeniorManagerUid: string | null = null
+    let orgDocData: any = null
     if (orgCode) {
       const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
       if (orgDoc.exists) {
-        primarySeniorManagerUid = orgDoc.data()?.seniorManagerUid || null
+        orgDocData = orgDoc.data() || null
+        primarySeniorManagerUid = orgDocData?.seniorManagerUid || null
         // RÈGLE ARCHITECTURALE (AGENTS.md §7 Zero Hardcoding) :
         // Si le segment est un libellé de rôle fictif ('Direction', 'direction générale'),
         // on le nettoie vers null — on ne substitue JAMAIS par une valeur hardcodée.
@@ -171,6 +174,13 @@ export async function GET(request: NextRequest) {
     let executives: any[] = []
     let coordinators: any[] = []
     let availableSegments: string[] = []
+    let unassignedZones: Array<{
+      segment: string
+      zone: string | null
+      displaySegment: string
+      interimByUid: string | null
+      interimByName: string | null
+    }> = []
     let managersLoadError: string | null = null
     if (orgCode) {
       try {
@@ -287,6 +297,94 @@ export async function GET(request: NextRequest) {
                 createdAt: cData.createdAt?.toDate ? cData.createdAt.toDate().toISOString() : null
               }
             })
+
+          // Calculer les zones existantes qui n'ont pas de Coordinateur titulaire désigné
+          const activeTitularDisplays = coordinators
+            .map((c) => c.displaySegment || c.segment)
+            .filter((val): val is string => typeof val === 'string' && val.trim().length > 0)
+
+          const interimHolderByKey = new Map<string, { uid: string; name: string }>()
+          const candidateZonesMap = new Map<
+            string,
+            { segment: string; zone: string | null; displaySegment: string }
+          >()
+
+          const registerZoneCandidate = (
+            rawSeg?: string | null,
+            rawZone?: string | null,
+            rawDisplay?: string | null
+          ) => {
+            const segClean = typeof rawSeg === 'string' ? rawSeg.split('(')[0]?.trim().toUpperCase() || '' : ''
+            const zoneFromSegMatch =
+              typeof rawSeg === 'string' ? rawSeg.match(/\(([^)]+)\)/)?.[1]?.trim() || '' : ''
+            const zoneClean =
+              typeof rawZone === 'string' && rawZone.trim()
+                ? rawZone.trim()
+                : zoneFromSegMatch || null
+            const displayClean =
+              (typeof rawDisplay === 'string' && rawDisplay.trim()) ||
+              (zoneClean && segClean ? `${segClean} (${zoneClean})` : segClean)
+
+            if (!displayClean || !segClean) return
+            const isCoveredByTitular = activeTitularDisplays.some((titular) =>
+              matchesOrgSegment(displayClean, titular)
+            )
+            if (isCoveredByTitular) return
+
+            const key = displayClean.toLowerCase()
+            if (!candidateZonesMap.has(key)) {
+              candidateZonesMap.set(key, {
+                segment: segClean,
+                zone: zoneClean,
+                displaySegment: displayClean
+              })
+            }
+          }
+
+          // 1) Zones explicitement libérées enregistrées sur organisations/{orgCode}.vacantZones
+          const orgVacantZones = Array.isArray(orgDocData?.vacantZones) ? orgDocData.vacantZones : []
+          orgVacantZones.forEach((vz: any) => {
+            registerZoneCandidate(vz?.segment, vz?.zone, vz?.displaySegment)
+          })
+
+          // 2) Zones portées par des intérims en cours
+          coordinators.forEach((coord) => {
+            ;(coord.interimSegments || []).forEach((it: any) => {
+              const itSeg = typeof it === 'string' ? it : it?.segment
+              const itZone = typeof it === 'string' ? null : it?.zone
+              const itDisplay =
+                typeof it === 'string'
+                  ? it
+                  : it?.displaySegment || (itZone && itSeg ? `${itSeg} (${itZone})` : itSeg)
+              if (itDisplay) {
+                interimHolderByKey.set(itDisplay.trim().toLowerCase(), {
+                  uid: coord.uid,
+                  name: coord.name
+                })
+                registerZoneCandidate(itSeg, itZone, itDisplay)
+              }
+            })
+          })
+
+          // 3) Zones portées par des Superviseurs sans Coordinateur titulaire
+          orgManagersSnap.docs.forEach((d) => {
+            const mData = d.data()
+            const mRole = d.id === managerUid ? orgRole : mData.orgRole || 'team_manager'
+            if (mRole === 'team_manager') {
+              registerZoneCandidate(mData.segment, mData.zone, mData.displaySegment)
+            }
+          })
+
+          unassignedZones = Array.from(candidateZonesMap.entries())
+            .map(([key, item]) => {
+              const holder = interimHolderByKey.get(key)
+              return {
+                ...item,
+                interimByUid: holder?.uid || null,
+                interimByName: holder?.name || null
+              }
+            })
+            .sort((a, b) => a.displaySegment.localeCompare(b.displaySegment, 'fr'))
         }
 
         console.log(
@@ -319,6 +417,7 @@ export async function GET(request: NextRequest) {
       executives,
       coordinators: isPrimarySeniorManager ? coordinators : [],
       availableSegments: isPrimarySeniorManager ? availableSegments : [],
+      unassignedZones: isPrimarySeniorManager ? unassignedZones : [],
       ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
   } catch (error: any) {

@@ -116,6 +116,20 @@ export async function PATCH(request: NextRequest) {
       updatedAt: now
     })
 
+    // Retirer la zone attribuée de organisations/{orgCode}.vacantZones si elle y figurait
+    if (orgDoc.exists && Array.isArray(orgDoc.data()?.vacantZones)) {
+      const prevVacant = orgDoc.data()?.vacantZones as any[]
+      const filteredVacant = prevVacant.filter(
+        (v) => String(v?.displaySegment || '').trim().toLowerCase() !== displaySegment.toLowerCase()
+      )
+      if (filteredVacant.length !== prevVacant.length) {
+        await adminDb.collection('organisations').doc(orgCode).update({
+          vacantZones: filteredVacant,
+          updatedAt: now
+        })
+      }
+    }
+
     // Synchroniser Custom Claims auth pour le Coordinateur
     try {
       await adminAuth.setCustomUserClaims(coordinatorUid, {
